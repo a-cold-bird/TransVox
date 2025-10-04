@@ -1,0 +1,195 @@
+# ============================================================
+# Sensitive Data (API Keys, Tokens, Personal Info)
+# ============================================================
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+*.p12
+config.json
+credentials.json
+
+# ============================================================
+# Git
+# ============================================================
+.git/
+.gitattributes
+.gitmodules
+
+# ============================================================
+# Python
+# ============================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual Environment
+venv/
+ENV/
+env/
+.venv/
+
+# ============================================================
+# IDEs and Editors
+# ============================================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+
+# ============================================================
+# Logs and Debugging
+# ============================================================
+logs/
+*.log
+*.log.*
+debug/
+
+# ============================================================
+# Input/Output Files (Large - exclude from tracking)
+# ============================================================
+input/*.mp4
+input/*.avi
+input/*.mov
+input/*.mkv
+input/*.flv
+input/*.webm
+input/*.wav
+input/*.mp3
+input/*.m4a
+input/*.xml
+output/
+
+# Keep example files if needed
+!input/.gitkeep
+
+# ============================================================
+# Model Weights and Checkpoints (VERY LARGE - do not upload)
+# ============================================================
+
+# All model weight files
+*.ckpt
+*.pth
+*.pt
+*.safetensors
+*.bin
+*.onnx
+*.pb
+*.h5
+*.keras
+
+# HF Cache
+checkpoints/hf_cache/
+.cache/huggingface/
+
+# MSST-WebUI
+tools/MSST-WebUI/pretrain/
+tools/MSST-WebUI/results/
+tools/MSST-WebUI/cache/
+tools/MSST-WebUI/logs/
+
+# GPT-SoVITS
+tools/GPT-SoVITS/GPT_SoVITS/pretrained_models/
+tools/GPT-SoVITS/GPT_weights*/
+tools/GPT-SoVITS/SoVITS_weights*/
+tools/GPT-SoVITS/logs/
+tools/GPT-SoVITS/output/
+tools/GPT-SoVITS/*.wav
+tools/GPT-SoVITS/*.mp3
+
+# IndexTTS
+tools/index-tts/checkpoints/
+tools/index-tts/outputs/
+tools/index-tts/build/
+tools/index-tts/dist/
+tools/index-tts/*.egg-info/
+tools/index-tts/*.wav
+
+# Whisper
+tools/whisper-subtitles/models/
+
+# ============================================================
+# Precompiled Wheels (IMPORTANT: Keep these for easy installation)
+# ============================================================
+# Override above rules for wheel files
+!*.whl
+!tools/**/*.whl
+
+# ============================================================
+# Temporary and Cache Files
+# ============================================================
+*.tmp
+*.temp
+temp/
+tmp/
+cache/
+.cache/
+
+# ============================================================
+# OS Specific
+# ============================================================
+Thumbs.db
+desktop.ini
+.DS_Store
+*.lnk
+
+# ============================================================
+# Test and Development
+# ============================================================
+test_*.py
+*_test.py
+test/
+tests/
+
+# Jupyter
+.ipynb_checkpoints
+*.ipynb
+
+# Coverage
+.coverage
+.coverage.*
+htmlcov/
+*.cover
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pytest
+.pytest_cache/
+.tox/
+
+# ============================================================
+# Large Binary Files (except wheels)
+# ============================================================
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# Font archives (keep the extracted .ttf)
+fonts/*.zip
+fonts/*.rar
+
+# Keep specific files we need
+!docs/**
+!*.ttf
+
+# ============================================================
+# Exclude unused directories and files
+# ============================================================
+tools/FunClip/
+web/
+api_server.py

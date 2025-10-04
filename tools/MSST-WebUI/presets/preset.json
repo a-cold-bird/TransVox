@@ -1,0 +1,28 @@
+{
+    "version": "1.0.0",
+    "name": "\u9ed8\u8ba4\u9884\u8bbe",
+    "flow": [
+        {
+            "model_type": "vocal_models",
+            "model_name": "big_beta5e.ckpt",
+            "input_to_next": "vocals",
+            "output_to_storage": [
+                "other"
+            ]
+        },
+        {
+            "model_type": "vocal_models",
+            "model_name": "model_mel_band_roformer_karaoke_aufr33_viperx_sdr_10.1956.ckpt",
+            "input_to_next": "karaoke",
+            "output_to_storage": [
+                "other"
+            ]
+        },
+        {
+            "model_type": "single_stem_models",
+            "model_name": "dereverb_mel_band_roformer_less_aggressive_anvuew_sdr_18.8050.ckpt",
+            "input_to_next": "noreverb",
+            "output_to_storage": []
+        }
+    ]
+}

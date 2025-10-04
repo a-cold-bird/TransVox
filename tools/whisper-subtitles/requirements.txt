@@ -1,0 +1,3 @@
+yt-dlp
+faster_whisper
+pysubs2
