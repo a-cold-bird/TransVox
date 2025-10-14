@@ -146,7 +146,22 @@ HF_ENDPOINT=https://hf-mirror.com
 **获取 API Key:**
 
 1. **Gemini API Key:** 访问 [Google AI Studio](https://aistudio.google.com/) 创建
+
 2. **Hugging Face Token:** 访问 [Hugging Face](https://huggingface.co/) Settings → Access Tokens 创建
+
+   创建 Token 时需要配置以下权限：
+
+   **仓库权限设置：**
+   选择以下两个仓库的读取权限：
+   - `pyannote/segmentation-3.0`
+   - `pyannote/speaker-diarization-3.1`
+
+   ![HuggingFace 仓库选择](docs/images/hf_repo_select.png)
+
+   **Token 权限范围：**
+   勾选 "Read access to contents of selected repos" 权限
+
+   ![HuggingFace Token 权限](docs/images/hf_token_scope.png)
 
 ### 4. 验证安装
 
