@@ -1,0 +1,250 @@
+---
+title: "Quick Start"
+description: "Get started with TransVox in 5 minutes"
+order: 3
+category: "getting-started"
+---
+
+# Quick Start
+
+This guide will help you process your first translated video in 5 minutes.
+
+## Prerequisites
+
+Ensure you have completed:
+- ✅ [Install all dependencies](/docs/getting-started/installation)
+- ✅ Download required AI models
+- ✅ Configure API keys (Gemini and HuggingFace)
+
+## Method 1: Using Web Interface (Recommended for Beginners)
+
+### 1. Start Services
+
+**Using one-click startup script:**
+
+```bash
+# Windows
+.\start.bat
+
+# Linux
+./start.sh
+```
+
+**Or start manually:**
+
+```bash
+# Terminal 1: Start backend API
+venv\Scripts\activate  # Windows
+source venv/bin/activate  # Linux
+uvicorn api_server:app --host 0.0.0.0 --port 8000 --reload
+
+# Terminal 2: Start frontend
+cd web
+npm run dev
+```
+
+### 2. Access Web Interface
+
+Open your browser and visit:
+- **Frontend Interface**: http://localhost:3000
+- **API Documentation**: http://localhost:8000/docs
+
+### 3. Upload Video
+
+1. Click "Get Started" button on homepage
+2. Drag and drop your video file to upload
+3. Wait for upload to complete
+
+### 4. Configure Translation Parameters
+
+In the right panel, set:
+
+- **Source Language**: auto (auto-detect) or manually select
+- **Target Language**: Select target language for translation
+- **TTS Engine**:
+  - `indextts`: CN/EN, fast
+  - `gptsovits`: CN/EN/JA/KO, high quality
+- **Subtitle Mode**:
+  - `hardcode`: Burned into video
+  - `soft`: Toggleable subtitle track
+  - `external`: Separate subtitle file
+  - `both`: Soft + external files
+
+### 5. Start Processing
+
+Click "Start Processing" button. The system will automatically complete:
+
+1. ✓ Audio/Video separation
+2. ✓ Vocal separation
+3. ✓ Speech recognition
+4. ✓ Subtitle translation
+5. ✓ TTS voice synthesis
+6. ✓ Audio/Video merging
+
+After processing is complete, you can download the translated video!
+
+## Method 2: Using Command Line (Recommended for Advanced Users)
+
+### Fully Automated Pipeline
+
+Complete all steps with one command:
+
+```bash
+# Translate English video to Chinese
+python full_auto_pipeline.py input/video.mp4 --target_lang zh
+
+# Translate Chinese video to English
+python full_auto_pipeline.py input/video.mp4 --target_lang en
+
+# Use GPT-SoVITS engine to translate to Japanese
+python full_auto_pipeline.py input/video.mp4 --target_lang ja --tts_engine gptsovits
+
+# Auto-embed bilingual subtitles
+python full_auto_pipeline.py input/video.mp4 --target_lang zh --embed-subtitle --subtitle-bilingual
+```
+
+Output files are located in: `output/<video_name>/merge/`
+
+### Step-by-Step Execution
+
+For more granular control (e.g., manual subtitle editing), execute step by step:
+
+#### Step 1: Preprocessing and Transcription
+
+```bash
+python stepA_prepare_and_blank_srt.py input/video.mp4 -e whisperx -l auto
+```
+
+This generates:
+- `output/<stem>/<stem>.srt` - Original subtitles
+- `output/<stem>/<stem>_speak.wav` - Separated vocals
+- `output/<stem>/<stem>_video_only.mp4` - Video without audio
+
+#### Step 2: Translate Subtitles
+
+```bash
+python Scripts/step4_translate_srt.py output/<stem>/<stem>.srt --target_lang zh --whole_file
+```
+
+Generates: `output/<stem>/<stem>.translated.srt`
+
+> **Tip**: You can manually edit the translated subtitle file at this point
+
+#### Step 3: TTS Voice Synthesis
+
+**Using IndexTTS (CN/EN):**
+
+```bash
+python stepB_index_pipeline.py <stem>
+```
+
+**Using GPT-SoVITS (CN/EN/JA/KO):**
+
+```bash
+python stepB_gptsovits_pipeline.py <stem> --mode local --text_lang zh --prompt_lang en
+```
+
+Generates: `output/<stem>/tts*/` - Synthesized audio segments
+
+#### Step 4: Embed Subtitles (Optional)
+
+```bash
+# Soft subtitles (toggleable)
+python stepC_embed_subtitles.py <stem> --mode soft
+
+# Hardcoded subtitles (burned-in)
+python stepC_embed_subtitles.py <stem> --mode hardcode
+
+# Bilingual subtitles
+python stepC_embed_subtitles.py <stem> --mode soft --bilingual
+```
+
+## Practical Examples
+
+### Example 1: Quick Test (English to Chinese)
+
+```bash
+# 1. Prepare test video
+cp ~/Downloads/test_en.mp4 input/
+
+# 2. One-click translation
+python full_auto_pipeline.py input/test_en.mp4 --target_lang zh
+
+# 3. Check result
+ls output/test_en/merge/
+# Output: test_en_final.mp4
+```
+
+### Example 2: High-Quality Dubbing (Step-by-Step)
+
+```bash
+# 1. Transcribe and extract audio
+python stepA_prepare_and_blank_srt.py input/video.mp4 -e whisperx -l en
+
+# 2. Translate subtitles
+python Scripts/step4_translate_srt.py output/video/video.srt --target_lang zh --whole_file
+
+# 3. Manually check and modify subtitles
+nano output/video/video.translated.srt
+
+# 4. Synthesize with IndexTTS (faster)
+python stepB_index_pipeline.py video
+
+# 5. Embed bilingual soft subtitles
+python stepC_embed_subtitles.py video --mode soft --bilingual
+```
+
+### Example 3: Batch Processing
+
+```bash
+# Process all videos in input directory
+for video in input/*.mp4; do
+  python full_auto_pipeline.py "$video" --target_lang zh --tts_engine indextts
+done
+```
+
+## Processing Time Reference
+
+| Video Length | Processing Time (GPU) | Processing Time (CPU) |
+|--------------|----------------------|----------------------|
+| 2 minutes    | ~5-8 minutes        | ~20-30 minutes       |
+| 5 minutes    | ~12-18 minutes      | ~45-60 minutes       |
+| 10 minutes   | ~25-35 minutes      | ~90-120 minutes      |
+| 30 minutes   | ~70-100 minutes     | ~4-6 hours           |
+
+> **Note**: Actual processing time depends on GPU performance, video content complexity, and TTS engine selection.
+
+## Common Questions
+
+### Q: What if processing fails?
+
+**A:** Check:
+1. Review error messages in terminal output
+2. Verify API keys are configured correctly
+3. Check if GPU VRAM is sufficient
+4. Check detailed logs in `logs/` directory
+
+### Q: How to improve processing speed?
+
+**A:** You can:
+1. Use IndexTTS engine (faster than GPT-SoVITS)
+2. Reduce video resolution
+3. Use a more powerful GPU
+4. Disable unnecessary post-processing
+
+### Q: Dubbing quality not satisfactory?
+
+**A:** Try:
+1. Use GPT-SoVITS engine (higher quality)
+2. Adjust TTS parameters (speed, pitch, etc.)
+3. Manually modify subtitles to optimize phrasing
+4. Use higher quality source audio
+
+## Next Steps
+
+Congratulations! You've completed your first video translation. Next, you can:
+
+- [CLI Usage Guide](/docs/guide/cli-usage) - Learn more command-line tips
+- [Web Interface Guide](/docs/guide/web-interface) - Explore all Web interface features
+- [Configuration Management](/docs/configuration/config-file) - Customize configuration options
+- [FAQ](/docs/faq) - Find solutions to problems

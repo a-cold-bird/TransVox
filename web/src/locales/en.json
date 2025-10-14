@@ -1,0 +1,269 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "back": "Back"
+  },
+  "nav": {
+    "home": "Home",
+    "workspace": "Workspace",
+    "docs": "Documentation",
+    "getStarted": "Get Started",
+    "backToHome": "Back to Home"
+  },
+  "home": {
+    "title": "AI-Powered Video Translation Platform",
+    "subtitle": "Zero-Shot Voice Cloning · Multi-Language Translation",
+    "description": "Use cutting-edge AI technology to automatically translate videos and clone original speaker voices, reaching global audiences",
+    "startTranslating": "Get Started",
+    "viewDocs": "View Documentation",
+    "features": "Core Features",
+    "featuresDesc": "Integrating cutting-edge AI technology for professional video translation solutions",
+    "workflow": "Workflow",
+    "workflowDesc": "Complete video translation in three simple steps",
+    "readyTitle": "Ready to Get Started?",
+    "readyDesc": "Start using TransVox now to make your video content cross language barriers and reach global audiences",
+    "launchWorkspace": "Launch Workspace",
+    "tags": {
+      "zeroShot": "Zero-Shot Cloning",
+      "multiLang": "Multi-Language",
+      "autoSubtitle": "Auto Subtitles",
+      "aiDub": "AI Dubbing",
+      "oneClick": "One-Click Export"
+    },
+    "step1": {
+      "title": "Upload Video",
+      "desc": "Support multiple video formats, drag and drop to upload, system automatically recognizes video parameters"
+    },
+    "step2": {
+      "title": "Configure Parameters",
+      "desc": "Select target language, adjust translation and dubbing parameters, preview effects"
+    },
+    "step3": {
+      "title": "Export Result",
+      "desc": "Download translated and dubbed video files after automatic processing"
+    }
+  },
+  "features": {
+    "voiceClone": {
+      "title": "Zero-Shot Voice Cloning",
+      "desc": "No training required, automatically analyze and clone original speaker's voice characteristics for highly natural dubbing. Supports multiple timbres and speech rate adjustments.",
+      "feature1": "No training data needed",
+      "feature2": "Automatic voice analysis",
+      "feature3": "High-fidelity audio"
+    },
+    "multiLang": {
+      "title": "Intelligent Multi-Language Translation",
+      "desc": "Support translation between Chinese, English, Japanese, and Korean using advanced neural machine translation technology, ensuring accurate and natural translations that fit target language expressions.",
+      "feature1": "4 languages supported",
+      "feature2": "Context understanding",
+      "feature3": "Professional terminology"
+    },
+    "subtitle": {
+      "title": "Automatic Subtitle Generation",
+      "desc": "Use WhisperX for high-precision speech recognition, automatically generate timeline-accurate subtitle files, support multiple format exports.",
+      "feature1": "High-precision recognition",
+      "feature2": "Timeline alignment",
+      "feature3": "Multiple formats"
+    },
+    "autoProcess": {
+      "title": "Fully Automated Processing",
+      "desc": "Complete video translation and dubbing workflow with one click, automatically handle complex steps like audio separation, speech recognition, translation, dubbing, and synthesis.",
+      "feature1": "Automated workflow",
+      "feature2": "Batch processing",
+      "feature3": "Real-time progress"
+    }
+  },
+  "upload": {
+    "dragDrop": "Drag & drop a video here",
+    "orClick": "or click to select a file",
+    "supported": "Supported formats: MP4, MKV, AVI, MOV, WebM",
+    "uploading": "Uploading...",
+    "uploadVideo": "Upload Video"
+  },
+  "pipeline": {
+    "title": "Pipeline Configuration",
+    "desc": "Configure the video translation and dubbing pipeline",
+    "translation": "Translation",
+    "sourceLanguage": "Source Language",
+    "targetLanguage": "Target Language",
+    "tts": "Text-to-Speech",
+    "ttsEngine": "TTS Engine",
+    "subtitle": "Subtitle Embedding",
+    "embeddingMode": "Embedding Mode",
+    "modes": {
+      "hardcode": "Hardcode (Burned-in)",
+      "soft": "Soft Subtitle (Toggleable)",
+      "external": "External Subtitle",
+      "both": "Soft + External"
+    },
+    "modeDesc": {
+      "hardcode": "Subtitle burned into video, cannot be turned off",
+      "soft": "Subtitle embedded in container, can be turned on/off",
+      "external": "Separate subtitle file (.srt/.ass)",
+      "both": "Both soft subtitle and external files"
+    },
+    "startPipeline": "Start Pipeline"
+  },
+  "workspace": {
+    "title": "TransVox Workspace",
+    "processing": "Processing Video",
+    "readyToProcess": "Ready to Process",
+    "configureRightPanel": "Configure translation parameters in the right panel",
+    "starting": "Starting...",
+    "steps": "Pipeline Steps",
+    "stepsDesc": "Automated video translation workflow",
+    "step1": { "name": "Extract Audio", "desc": "Separating audio from video" },
+    "step2": { "name": "Vocal Separation", "desc": "Isolating voice from background" },
+    "step3": { "name": "Transcription", "desc": "Converting speech to text" },
+    "step4": { "name": "Translation", "desc": "Translating to target language" },
+    "step5": { "name": "TTS Generation", "desc": "Generating dubbed audio" },
+    "step6": { "name": "Merge & Process", "desc": "Combining audio and video" },
+    "complete": "Complete",
+    "completedSuccess": "Pipeline completed successfully!",
+    "failed": "Pipeline failed",
+    "mode": "Mode",
+    "output": "Output",
+    "subtitle": "Subtitle"
+  },
+  "languages": {
+    "en": "English",
+    "zh": "Chinese",
+    "ja": "Japanese",
+    "ko": "Korean"
+  },
+  "settings": {
+    "title": "Settings",
+    "api": "API Configuration",
+    "apiKey": "API Key",
+    "baseUrl": "Base URL",
+    "translation": "Translation Settings",
+    "provider": "Translation Provider",
+    "project": "Project Settings",
+    "autoNumbering": "Auto Numbering",
+    "autoNumberingDesc": "Automatically number output folders",
+    "outputDir": "Output Directory",
+    "save": "Save Settings",
+    "reset": "Reset to Default",
+    "saved": "Settings Saved"
+  },
+  "tools": {
+    "title": "Toolbox",
+    "download": "Video Download",
+    "downloadDesc": "Download video from URL",
+    "subtitleEditor": "Subtitle Editor",
+    "subtitleEditorDesc": "Edit and export subtitles",
+    "audioSeparator": "Audio Separator",
+    "audioSeparatorDesc": "Separate vocals and background",
+    "transcribe": "Transcribe",
+    "transcribeDesc": "Generate subtitle file",
+    "translate": "Translate Subtitles",
+    "translateDesc": "Translate subtitles with AI"
+  },
+  "download": {
+    "title": "Video Download",
+    "url": "Video URL",
+    "urlPlaceholder": "Enter video URL (YouTube, etc.)",
+    "download": "Download",
+    "downloading": "Downloading...",
+    "success": "Download Complete",
+    "autoTranslate": "Auto translate after download",
+    "selectQuality": "Select Quality"
+  },
+  "subtitleEditor": {
+    "title": "Subtitle Editor",
+    "import": "Import",
+    "export": "Export",
+    "add": "Add",
+    "delete": "Delete",
+    "preview": "Preview",
+    "style": "Style",
+    "index": "Index",
+    "startTime": "Start Time",
+    "endTime": "End Time",
+    "text": "Text",
+    "fontFamily": "Font",
+    "fontSize": "Size",
+    "fontColor": "Color",
+    "bgColor": "Background",
+    "outlineColor": "Outline",
+    "outlineWidth": "Outline Width",
+    "bold": "Bold",
+    "italic": "Italic",
+    "alignment": "Align",
+    "format": "Format",
+    "importFile": "Import File",
+    "exportAs": "Export As"
+  },
+  "docs": {
+    "tableOfContents": "Table of Contents",
+    "welcome": {
+      "title": "Welcome to TransVox Documentation",
+      "description": "Learn how to use TransVox for AI-powered video translation and voice cloning"
+    },
+    "sections": {
+      "gettingStarted": "Getting Started",
+      "features": "Features",
+      "apiReference": "API Reference",
+      "advanced": "Advanced"
+    },
+    "items": {
+      "introduction": "Introduction",
+      "installation": "Installation",
+      "quickStart": "Quick Start",
+      "videoTranslation": "Video Translation",
+      "voiceCloning": "Voice Cloning",
+      "subtitleProcessing": "Subtitle Processing",
+      "webTools": "Web Toolbox",
+      "restApi": "REST API",
+      "configuration": "Configuration",
+      "customModels": "Custom Models",
+      "performanceTuning": "Performance Tuning"
+    },
+    "getting-started.title": "Getting Started",
+    "getting-started.title.desc": "Quick start guide for TransVox installation and setup",
+    "getting-started.introduction": "Introduction",
+    "getting-started.requirements": "Requirements",
+    "getting-started.installation": "Installation",
+    "getting-started.apiConfiguration": "API Configuration",
+    "getting-started.verification": "Verification",
+    "user-guide.title": "User Guide",
+    "user-guide.title.desc": "Complete guide for using TransVox features",
+    "user-guide.cliUsage": "CLI Usage",
+    "user-guide.webInterface": "Web Interface",
+    "user-guide.autoPipeline": "Auto Pipeline",
+    "user-guide.stepByStep": "Step by Step",
+    "configuration.title": "Configuration",
+    "configuration.title.desc": "Configure TransVox settings and engines",
+    "configuration.configFiles": "Config Files",
+    "configuration.ttsEngines": "TTS Engines",
+    "configuration.translationEngines": "Translation Engines",
+    "configuration.advanced": "Advanced",
+    "tools-guide.title": "Tools",
+    "tools-guide.title.desc": "Individual tools for video processing",
+    "tools-guide.videoDownload": "Video Download",
+    "tools-guide.subtitleTools": "Subtitle Tools",
+    "tools-guide.audioSeparation": "Audio Separation",
+    "tools-guide.ttsSynthesis": "TTS Synthesis",
+    "faq.title": "FAQ",
+    "faq.title.desc": "Frequently asked questions and troubleshooting",
+    "faq.environment": "Environment Issues",
+    "faq.models": "Model Download",
+    "faq.gpuIssues": "GPU Issues",
+    "faq.apiErrors": "API Errors",
+    "advanced.title": "Advanced",
+    "advanced.title.desc": "Advanced topics for developers",
+    "advanced.customModels": "Custom Models",
+    "advanced.apiDevelopment": "API Development",
+    "advanced.contributing": "Contributing"
+  }
+}
+
+

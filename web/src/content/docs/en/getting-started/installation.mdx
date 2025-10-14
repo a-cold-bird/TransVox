@@ -1,0 +1,215 @@
+---
+title: "Installation Guide"
+description: "Complete installation and configuration steps for TransVox"
+order: 2
+category: "getting-started"
+---
+
+# Installation Guide
+
+This guide will help you complete the full installation and configuration of TransVox.
+
+## Requirements
+
+Before starting, ensure your system meets the following requirements:
+
+### Hardware Requirements
+- **GPU**: NVIDIA GPU (recommended: 2080Ti or higher, 11GB+ VRAM)
+- **RAM**: 16GB or more
+- **Storage**: At least 50GB free space (for models and output files)
+
+### Software Requirements
+- **OS**: Windows 10/11 or Linux
+- **Python**: 3.10 (recommended)
+- **CUDA**: 12.8 (matching PyTorch version)
+- **FFmpeg**: Latest version
+- **Node.js**: 18.0 or higher (for Web interface)
+
+## Installation Steps
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/a-cold-bird/TransVox.git
+cd TransVox
+```
+
+### 2. Create Python Virtual Environment
+
+**Windows:**
+
+```powershell
+python -m venv venv
+venv\Scripts\activate
+```
+
+**Linux:**
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+### 3. Install Python Dependencies
+
+```bash
+# Upgrade pip
+python -m pip install --upgrade pip
+
+# Install PyTorch (CUDA 12.8)
+pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+
+# Install project dependencies
+pip install -r requirements.txt
+
+# Install IndexTTS
+pip install -e tools/index-tts
+
+# Download NLTK data
+python download_nltk_data.py
+```
+
+### 4. Install FFmpeg
+
+**Windows (using Scoop):**
+
+```powershell
+scoop install ffmpeg
+```
+
+**Windows (using Chocolatey):**
+
+```powershell
+choco install ffmpeg
+```
+
+**Linux (Ubuntu/Debian):**
+
+```bash
+sudo apt-get update
+sudo apt-get install -y ffmpeg
+```
+
+### 5. Download AI Models
+
+Run the automatic download script:
+
+```bash
+python download_models.py
+```
+
+The script will automatically download the following models to the `tools/` directory:
+
+- **MSST-WebUI** vocal separation models (~500MB)
+- **GPT-SoVITS** pretrained models (~2GB)
+- **IndexTTS-2** pretrained models (~1.5GB)
+
+> **For users in China**: Add to `.env` file for faster downloads:
+> ```
+> HF_ENDPOINT=https://hf-mirror.com
+> ```
+
+### 6. Configure API Keys
+
+Copy the environment variable template:
+
+```bash
+cp .env_template .env
+```
+
+Edit the `.env` file and add required API keys:
+
+```bash
+# Gemini API Key (for subtitle translation)
+GEMINI_API_KEY=your_gemini_api_key
+
+# Hugging Face Token (for speaker diarization)
+HUGGINGFACE_TOKEN=your_huggingface_token
+
+# Optional: For users in China
+HF_ENDPOINT=https://hf-mirror.com
+```
+
+**How to Get API Keys:**
+
+1. **Gemini API Key**:
+   - Visit [Google AI Studio](https://aistudio.google.com/)
+   - Sign in with your Google account
+   - Click "Get API Key" to create a key
+
+2. **Hugging Face Token**:
+   - Visit [Hugging Face](https://huggingface.co/)
+   - Go to Settings → Access Tokens after logging in
+   - Create a new Read permission token
+
+### 7. Install Web Frontend (Optional)
+
+If you want to use the Web interface:
+
+```bash
+cd web
+npm install
+cd ..
+```
+
+### 8. Verify Installation
+
+Run the environment check script:
+
+```bash
+python check_environment.py
+```
+
+If all checks show ✓, installation is successful!
+
+## Configuration (Optional)
+
+TransVox supports saving user preferences. Use the config tool:
+
+```bash
+# View current config
+python config_tool.py show
+
+# Use fast preset (recommended for beginners)
+python config_tool.py preset fast
+
+# Use quality preset
+python config_tool.py preset quality
+
+# Manually set config items
+python config_tool.py set translation.api_type gemini
+python config_tool.py set tts.engine indextts
+```
+
+For detailed configuration instructions, see [Configuration Management Guide](/docs/configuration/config-file).
+
+## Common Issues
+
+### Q1: CUDA unavailable?
+
+**A:** Ensure:
+1. NVIDIA drivers are installed
+2. CUDA version matches PyTorch version
+3. Run `nvidia-smi` to check GPU status
+
+### Q2: Model download failed
+
+**A:** Try:
+1. Use HuggingFace mirror site (see configuration above)
+2. Manually download model files
+3. Check network connection
+
+### Q3: FFmpeg not found
+
+**A:** Ensure FFmpeg is installed and in PATH:
+```bash
+ffmpeg -version
+```
+
+## Next Steps
+
+After installation, you can:
+
+- [Quick Start](/docs/getting-started/quick-start) - Process your first video
+- [CLI Usage Guide](/docs/guide/cli-usage) - Learn command-line tools
+- [Web Interface Guide](/docs/guide/web-interface) - Use the graphical interface

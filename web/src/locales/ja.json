@@ -1,0 +1,206 @@
+{
+  "common": {
+    "loading": "読み込み中...",
+    "error": "エラー",
+    "success": "成功",
+    "cancel": "キャンセル",
+    "confirm": "確認",
+    "save": "保存",
+    "delete": "削除",
+    "edit": "編集",
+    "close": "閉じる",
+    "back": "戻る"
+  },
+  "nav": {
+    "home": "ホーム",
+    "workspace": "ワークスペース",
+    "docs": "ドキュメント",
+    "getStarted": "始める",
+    "backToHome": "ホームに戻る"
+  },
+  "home": {
+    "title": "AI駆動のビデオ翻訳プラットフォーム",
+    "subtitle": "ゼロショット音声クローン・多言語翻訳",
+    "description": "最先端のAI技術を使用して、ビデオを自動翻訳し、元の話者の声をクローン化して、グローバルな視聴者にリーチします",
+    "startTranslating": "始める",
+    "viewDocs": "ドキュメントを表示",
+    "features": "主要機能",
+    "featuresDesc": "最先端のAI技術を統合し、プロフェッショナルなビデオ翻訳ソリューションを提供",
+    "workflow": "ワークフロー",
+    "workflowDesc": "簡単な3ステップでビデオ翻訳を完了",
+    "readyTitle": "始める準備はできましたか？",
+    "readyDesc": "今すぐTransVoxを使用して、ビデオコンテンツを言語の壁を越えてグローバルな視聴者に届けましょう",
+    "launchWorkspace": "ワークスペースを起動",
+    "tags": {
+      "zeroShot": "ゼロショットクローン",
+      "multiLang": "多言語対応",
+      "autoSubtitle": "自動字幕",
+      "aiDub": "AI吹き替え",
+      "oneClick": "ワンクリックエクスポート"
+    },
+    "step1": {
+      "title": "ビデオをアップロード",
+      "desc": "複数のビデオ形式をサポート、ドラッグ＆ドロップでアップロード、システムがビデオパラメータを自動認識"
+    },
+    "step2": {
+      "title": "パラメータを設定",
+      "desc": "ターゲット言語を選択し、翻訳と吹き替えのパラメータを調整し、効果をプレビュー"
+    },
+    "step3": {
+      "title": "結果をエクスポート",
+      "desc": "自動処理後に翻訳・吹き替え済みビデオファイルをダウンロード"
+    }
+  },
+  "features": {
+    "voiceClone": {
+      "title": "ゼロショット音声クローン",
+      "desc": "トレーニング不要、元の話者の声の特徴を自動分析・クローン化し、非常に自然な吹き替え効果を実現。複数の音色と話速調整に対応。",
+      "feature1": "トレーニングデータ不要",
+      "feature2": "自動音声分析",
+      "feature3": "高忠実度オーディオ"
+    },
+    "multiLang": {
+      "title": "インテリジェント多言語翻訳",
+      "desc": "中国語、英語、日本語、韓国語の4言語間の翻訳をサポート。高度なニューラル機械翻訳技術を使用し、正確で自然な翻訳を保証し、対象言語の表現習慣に適合します。",
+      "feature1": "4言語対応",
+      "feature2": "文脈理解",
+      "feature3": "専門用語対応"
+    },
+    "subtitle": {
+      "title": "自動字幕生成",
+      "desc": "WhisperXを使用した高精度音声認識により、タイムライン精度の高い字幕ファイルを自動生成。複数のフォーマットでのエクスポートをサポート。",
+      "feature1": "高精度認識",
+      "feature2": "タイムライン同期",
+      "feature3": "複数フォーマット対応"
+    },
+    "autoProcess": {
+      "title": "完全自動処理",
+      "desc": "ワンクリックでビデオ翻訳・吹き替えワークフロー全体を完了。音声分離、音声認識、翻訳、吹き替え、合成などの複雑なステップを自動処理。",
+      "feature1": "自動化ワークフロー",
+      "feature2": "バッチ処理",
+      "feature3": "リアルタイム進捗"
+    }
+  },
+  "upload": {
+    "dragDrop": "ここにビデオをドラッグ＆ドロップ",
+    "orClick": "またはクリックしてファイルを選択",
+    "supported": "対応形式：MP4、MKV、AVI、MOV、WebM",
+    "uploading": "アップロード中...",
+    "uploadVideo": "ビデオをアップロード"
+  },
+  "pipeline": {
+    "title": "パイプライン設定",
+    "desc": "ビデオ翻訳と吹き替えパイプラインを設定",
+    "translation": "翻訳",
+    "sourceLanguage": "ソース言語",
+    "targetLanguage": "ターゲット言語",
+    "tts": "テキスト読み上げ",
+    "ttsEngine": "TTSエンジン",
+    "subtitle": "字幕埋め込み",
+    "embeddingMode": "埋め込みモード",
+    "modes": {
+      "hardcode": "ハードコード（焼き込み）",
+      "soft": "ソフト字幕（切り替え可能）",
+      "external": "外部字幕",
+      "both": "ソフト + 外部"
+    },
+    "modeDesc": {
+      "hardcode": "ビデオに焼き込まれた字幕、オフにできません",
+      "soft": "コンテナに埋め込まれた字幕、オン/オフ可能",
+      "external": "別の字幕ファイル（.srt/.ass）",
+      "both": "ソフト字幕と外部字幕ファイル"
+    },
+    "startPipeline": "パイプラインを開始"
+  },
+  "workspace": {
+    "title": "TransVox ワークスペース",
+    "processing": "ビデオ処理中",
+    "readyToProcess": "処理準備完了",
+    "configureRightPanel": "右側のパネルで翻訳パラメータを設定してください",
+    "starting": "起動中...",
+    "steps": "パイプラインステップ",
+    "stepsDesc": "自動化されたビデオ翻訳ワークフロー",
+    "step1": { "name": "音声抽出", "desc": "ビデオから音声を分離" },
+    "step2": { "name": "ボーカル分離", "desc": "背景から音声を分離" },
+    "step3": { "name": "文字起こし", "desc": "音声をテキストに変換" },
+    "step4": { "name": "翻訳", "desc": "ターゲット言語に翻訳" },
+    "step5": { "name": "TTS生成", "desc": "吹き替え音声を生成" },
+    "step6": { "name": "マージ＆処理", "desc": "音声とビデオを結合" },
+    "complete": "完了",
+    "completedSuccess": "パイプラインが完了しました！",
+    "failed": "パイプラインが失敗しました",
+    "mode": "モード",
+    "output": "出力",
+    "subtitle": "字幕"
+  },
+  "languages": {
+    "en": "英語",
+    "zh": "中国語",
+    "ja": "日本語",
+    "ko": "韓国語"
+  },
+  "settings": {
+    "title": "設定",
+    "api": "API設定",
+    "apiKey": "APIキー",
+    "baseUrl": "ベースURL",
+    "translation": "翻訳設定",
+    "provider": "翻訳プロバイダー",
+    "project": "プロジェクト設定",
+    "autoNumbering": "自動番号付け",
+    "autoNumberingDesc": "出力フォルダに自動的に番号を付ける",
+    "outputDir": "出力ディレクトリ",
+    "save": "設定を保存",
+    "reset": "デフォルトに戻す",
+    "saved": "設定を保存しました"
+  },
+  "tools": {
+    "title": "ツールボックス",
+    "download": "動画ダウンロード",
+    "downloadDesc": "URLから動画をダウンロード",
+    "subtitleEditor": "字幕エディター",
+    "subtitleEditorDesc": "字幕を編集してエクスポート",
+    "audioSeparator": "音声分離",
+    "audioSeparatorDesc": "ボーカルと背景音楽を分離",
+    "transcribe": "文字起こし",
+    "transcribeDesc": "字幕ファイルを生成"
+  },
+  "download": {
+    "title": "動画ダウンロード",
+    "url": "動画URL",
+    "urlPlaceholder": "動画URLを入力（YouTubeなど）",
+    "download": "ダウンロード",
+    "downloading": "ダウンロード中...",
+    "success": "ダウンロード完了",
+    "autoTranslate": "ダウンロード後に自動翻訳",
+    "selectQuality": "品質を選択"
+  },
+  "subtitleEditor": {
+    "title": "字幕エディター",
+    "import": "インポート",
+    "export": "エクスポート",
+    "add": "追加",
+    "delete": "削除",
+    "preview": "プレビュー",
+    "style": "スタイル",
+    "index": "番号",
+    "startTime": "開始時間",
+    "endTime": "終了時間",
+    "text": "テキスト",
+    "fontFamily": "フォント",
+    "fontSize": "サイズ",
+    "fontColor": "色",
+    "bgColor": "背景",
+    "outlineColor": "アウトライン",
+    "outlineWidth": "アウトライン幅",
+    "bold": "太字",
+    "italic": "斜体",
+    "alignment": "配置",
+    "format": "形式",
+    "importFile": "ファイルをインポート",
+    "exportAs": "エクスポート"
+  }
+}
+
+
+

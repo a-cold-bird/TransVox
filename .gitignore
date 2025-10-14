@@ -9,6 +9,7 @@
 *.p12
 config.json
 credentials.json
+transvox_config.json
 
 # ============================================================
 # Git
@@ -44,9 +45,12 @@ env/
 *.swp
 *.swo
 *~
-.DS_Store
 *.sublime-project
 *.sublime-workspace
+
+# Claude Code
+.claude/
+CLAUDE.md
 
 # ============================================================
 # Logs and Debugging
@@ -59,20 +63,13 @@ debug/
 # ============================================================
 # Input/Output Files (Large - exclude from tracking)
 # ============================================================
-input/*.mp4
-input/*.avi
-input/*.mov
-input/*.mkv
-input/*.flv
-input/*.webm
-input/*.wav
-input/*.mp3
-input/*.m4a
-input/*.xml
-output/
+# Ignore all files in input directory and subdirectories
+input/*
+output/*
 
-# Keep example files if needed
+# But keep the directory structure markers
 !input/.gitkeep
+!output/.gitkeep
 
 # ============================================================
 # Model Weights and Checkpoints (VERY LARGE - do not upload)
@@ -137,11 +134,10 @@ cache/
 .cache/
 
 # ============================================================
-# OS Specific
+# OS Specific (Windows)
 # ============================================================
 Thumbs.db
 desktop.ini
-.DS_Store
 *.lnk
 
 # ============================================================
@@ -191,5 +187,34 @@ fonts/*.rar
 # Exclude unused directories and files
 # ============================================================
 tools/FunClip/
-web/
-api_server.py
+workbench_web/
+docs_backup/
+
+# ============================================================
+# Frontend Build Artifacts
+# ============================================================
+web/node_modules/
+web/.next/
+web/out/
+web/.turbo/
+web/dist/
+
+# Package manager
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# ============================================================
+# Runtime and Temporary Files
+# ============================================================
+*.pid
+*.seed
+*.pid.lock
+.backend.pid
+.frontend.pid
+nul
+
+# Database
+*.db
+*.sqlite
+*.sqlite3

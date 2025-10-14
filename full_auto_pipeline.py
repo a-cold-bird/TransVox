@@ -22,6 +22,8 @@ import argparse
 import logging
 import subprocess
 import shutil
+import re
+import json
 from pathlib import Path
 from typing import Dict, Any, Optional
 
@@ -52,10 +54,109 @@ _load_dotenv_into_environ()
 
 class FullAutoPipeline:
     """完整的全自动视频翻译流水线"""
-    
+
     def __init__(self):
         self.project_root = Path(__file__).resolve().parent
-        
+
+    def get_video_duration(self, video_path: Path) -> Optional[float]:
+        """
+        获取视频时长（秒）
+
+        Args:
+            video_path: 视频文件路径
+
+        Returns:
+            float: 视频时长（秒），失败返回None
+        """
+        try:
+            cmd = [
+                'ffprobe',
+                '-v', 'error',
+                '-show_entries', 'format=duration',
+                '-of', 'json',
+                str(video_path)
+            ]
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            data = json.loads(result.stdout)
+            duration = float(data['format']['duration'])
+            return duration
+        except Exception as e:
+            logger.warning(f"无法获取视频时长: {e}")
+            return None
+
+    def get_srt_duration(self, srt_path: Path) -> Optional[float]:
+        """
+        获取SRT字幕文件的时长（最后一个字幕的结束时间）
+
+        Args:
+            srt_path: SRT文件路径
+
+        Returns:
+            float: 字幕时长（秒），失败返回None
+        """
+        try:
+            with open(srt_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+
+            # 匹配SRT时间戳格式：00:00:00,000 --> 00:00:00,000
+            time_pattern = r'(\d{2}):(\d{2}):(\d{2}),(\d{3})\s*-->\s*(\d{2}):(\d{2}):(\d{2}),(\d{3})'
+            matches = re.findall(time_pattern, content)
+
+            if not matches:
+                logger.warning("SRT文件中没有找到时间戳")
+                return None
+
+            # 获取最后一个字幕的结束时间
+            last_match = matches[-1]
+            end_h, end_m, end_s, end_ms = int(last_match[4]), int(last_match[5]), int(last_match[6]), int(last_match[7])
+
+            # 转换为秒
+            duration = end_h * 3600 + end_m * 60 + end_s + end_ms / 1000.0
+            return duration
+
+        except Exception as e:
+            logger.warning(f"无法获取SRT时长: {e}")
+            return None
+
+    def validate_duration_match(self, video_path: Path, srt_path: Path, tolerance: float = 10.0) -> tuple[bool, float]:
+        """
+        验证视频时长和字幕时长是否匹配
+
+        Args:
+            video_path: 视频文件路径
+            srt_path: SRT字幕文件路径
+            tolerance: 允许的误差（秒），默认10秒
+
+        Returns:
+            tuple[bool, float]: (是否匹配, 时长差异秒数)
+        """
+        video_duration = self.get_video_duration(video_path)
+        srt_duration = self.get_srt_duration(srt_path)
+
+        if video_duration is None or srt_duration is None:
+            logger.warning("无法验证时长匹配，跳过检查")
+            return True, 0.0
+
+        difference = abs(video_duration - srt_duration)
+
+        logger.info(f"📊 时长检查:")
+        logger.info(f"   视频时长: {video_duration:.2f}秒 ({video_duration/60:.1f}分钟)")
+        logger.info(f"   字幕时长: {srt_duration:.2f}秒 ({srt_duration/60:.1f}分钟)")
+        logger.info(f"   时长差异: {difference:.2f}秒")
+
+        if difference > tolerance:
+            logger.warning(
+                f"⚠️ 字幕时长差异较大:\n"
+                f"   视频时长: {video_duration:.2f}秒\n"
+                f"   字幕时长: {srt_duration:.2f}秒\n"
+                f"   差异: {difference:.2f}秒（超过容忍度 {tolerance}秒）\n"
+                f"   可能原因：LLM翻译时产生幻觉，时间戳格式错误"
+            )
+            return False, difference
+
+        logger.info(f"✅ 时长验证通过（差异 {difference:.2f}秒 <= 容忍度 {tolerance}秒）")
+        return True, difference
+
     def detect_language(self, video_path: str) -> str:
         """
         智能检测视频语言
@@ -168,56 +269,114 @@ class FullAutoPipeline:
             logger.error(f"❌ [Step 1] 音视频处理异常: {e}")
             return False
     
-    def step2_translate_subtitles(self, 
+    def step2_translate_subtitles(self,
                                 output_dir: str,
                                 video_stem: str,
+                                video_path: Path,
                                 target_lang: str = 'auto',
                                 mode: str = 'whole') -> bool:
         """
         步骤2: 翻译字幕
-        
+
         Args:
             output_dir: 输出目录
             video_stem: 视频基名
+            video_path: 原始视频文件路径（用于时长验证）
             target_lang: 目标语言
             mode: 翻译模式
-            
+
         Returns:
             bool: 是否成功
         """
         try:
             logger.info("🔄 [Step 2] 翻译字幕")
-            
+
             output_path = Path(output_dir)
             srt_file = output_path / f"{video_stem}.srt"
-            
+
             if not srt_file.exists():
                 logger.error(f"SRT文件不存在: {srt_file}")
                 return False
-            
+
             # 自动确定目标语言
             if target_lang == 'auto':
                 source_lang = self.detect_language(video_stem)
                 target_lang = self.determine_target_language(source_lang)
                 logger.info(f"目标翻译语言: {target_lang}")
-            
+
             # 构建翻译命令
+            translate_script = self.project_root / 'Scripts' / 'step4_translate_srt.py'
             cmd = [
-                sys.executable, 'Scripts/step4_translate_srt.py',
+                sys.executable, str(translate_script),
                 str(srt_file),
                 '--target_lang', target_lang
             ]
-            
+
             # 添加翻译模式参数
             if mode == 'whole':
                 cmd.append('--whole_file')
-            
+
             # 执行翻译 (修复编码问题)
             result = subprocess.run(cmd, check=True, capture_output=False, text=False)
             logger.info("✅ [Step 2] 字幕翻译完成")
-            
+
+            # 验证翻译后的字幕时长（容忍度：2分钟）
+            translated_srt = output_path / f"{video_stem}.translated.srt"
+            original_srt = output_path / f"{video_stem}.srt"
+
+            if translated_srt.exists():
+                logger.info("🔍 [Step 2] 验证翻译后字幕时长...")
+                is_valid, difference = self.validate_duration_match(video_path, translated_srt, tolerance=120.0)
+
+                if not is_valid:
+                    logger.warning(f"⚠️ [Step 2] 检测到字幕时长异常（差异: {difference:.2f}秒），尝试自动修复...")
+
+                    # 自动调用修复工具
+                    try:
+                        fix_script = self.project_root / "Scripts" / "fix_translated_srt.py"
+                        if not fix_script.exists():
+                            logger.error(f"修复工具不存在: {fix_script}")
+                            logger.error("字幕时长异常但无法自动修复，请手动检查")
+                            return False
+
+                        # 调用修复工具
+                        cmd = [
+                            sys.executable,
+                            str(fix_script),
+                            str(original_srt),
+                            str(translated_srt)
+                        ]
+
+                        result = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8')
+
+                        if result.returncode == 0:
+                            logger.info("✅ [Step 2] 字幕时间戳自动修复完成")
+                            logger.info(result.stdout)
+
+                            # 修复后再次验证
+                            logger.info("🔍 [Step 2] 重新验证修复后的字幕时长...")
+                            is_valid_after, difference_after = self.validate_duration_match(
+                                video_path, translated_srt, tolerance=120.0
+                            )
+
+                            if not is_valid_after:
+                                logger.warning(
+                                    f"⚠️ [Step 2] 修复后字幕时长仍然异常（差异: {difference_after:.2f}秒）\n"
+                                    f"   这可能是LLM翻译时添加/删除了字幕条目\n"
+                                    f"   将继续处理，但请手动检查字幕文件"
+                                )
+                        else:
+                            logger.error(f"❌ [Step 2] 字幕修复失败: {result.stderr}")
+                            logger.warning("将继续处理，但字幕时长可能存在问题")
+
+                    except Exception as e:
+                        logger.error(f"❌ [Step 2] 执行修复工具时出错: {e}")
+                        logger.warning("将继续处理，但字幕时长可能存在问题")
+            else:
+                logger.warning(f"翻译后的字幕文件不存在，跳过时长验证: {translated_srt}")
+
             return True
-            
+
         except subprocess.CalledProcessError as e:
             logger.error(f"❌ [Step 2] 字幕翻译失败: {e}")
             return False
@@ -420,6 +579,7 @@ class FullAutoPipeline:
             success = self.step2_translate_subtitles(
                 output_dir=output_dir,
                 video_stem=video_stem,
+                video_path=video_path,
                 target_lang=target_lang,
                 mode=translation_mode
             )

@@ -38,6 +38,7 @@ pystoi==0.4.1
 einops==0.6.1
 rotary-embedding-torch==0.3.5
 x-transformers
+json5
 
 # Text processing for TTS
 g2p-en==2.1.0
@@ -121,6 +122,7 @@ psutil==7.1.0
 fire==0.7.1
 click==8.3.0
 coloredlogs==15.0.1
+nvitop
 
 # Development tools
 ipython==8.37.0

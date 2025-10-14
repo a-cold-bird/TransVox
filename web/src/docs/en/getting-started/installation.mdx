@@ -1,0 +1,192 @@
+# Installation
+
+This page guides you through the complete installation of TransVox.
+
+## 1. Clone Project
+
+First, clone the TransVox project from GitHub:
+
+```bash
+git clone https://github.com/a-cold-bird/TransVox.git
+cd TransVox
+```
+
+## 2. Create Virtual Environment
+
+Use Python virtual environment to isolate project dependencies:
+
+**Windows:**
+```powershell
+python -m venv venv
+venv\Scripts\activate
+```
+
+**Linux/macOS:**
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+> 💡 **Tip**: After activation, `(venv)` will appear in your command prompt.
+
+## 3. Upgrade pip
+
+```bash
+python -m pip install --upgrade pip
+```
+
+## 4. Install PyTorch
+
+Install PyTorch for your system.
+
+**Windows/Linux (CUDA 12.8):**
+```bash
+pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+```
+
+**Linux (CUDA 12.1):**
+```bash
+pip3 install torch torchvision
+```
+
+**Verify PyTorch:**
+```python
+python -c "import torch; print(f'PyTorch: {torch.__version__}'); print(f'CUDA: {torch.cuda.is_available()}')"
+```
+
+Should output:
+```
+PyTorch: 2.4.0+cu128
+CUDA: True
+```
+
+## 5. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+This installs all required Python packages including:
+- WhisperX: Speech recognition
+- Transformers: NLP models
+- FastAPI: Web API
+- And more...
+
+**Install time:** ~5-10 minutes (depending on network)
+
+## 6. Install IndexTTS
+
+IndexTTS is TransVox's primary TTS engine:
+
+```bash
+pip install -e tools/index-tts
+```
+
+## 7. Download NLTK Data
+
+Some text processing requires NLTK data:
+
+```bash
+python download_nltk_data.py
+```
+
+## 8. Download Models
+
+TransVox requires multiple AI models. Use the auto-download script:
+
+```bash
+python download_models.py
+```
+
+Downloads:
+- **MSST-WebUI models** (~3GB): Vocal separation
+- **GPT-SoVITS models** (~5GB): Multilingual TTS
+- **IndexTTS models** (~2GB): Chinese/English TTS
+
+**Download time:** ~20-60 minutes (depending on network)
+
+### Speed Up (China Users)
+
+If download is slow, use Hugging Face mirror:
+
+```bash
+# Windows
+set HF_ENDPOINT=https://hf-mirror.com
+
+# Linux/macOS
+export HF_ENDPOINT=https://hf-mirror.com
+
+# Then run again
+python download_models.py
+```
+
+### Manual Download (Optional)
+
+If auto-download fails, manually download models. See [Model Download Guide](/docs/faq/models).
+
+## 9. Configure Environment
+
+Copy environment template:
+
+```bash
+cp .env_template .env
+```
+
+Edit `.env` file and add your API Keys:
+
+```bash
+# Gemini API Key (Required)
+GEMINI_API_KEY=your_gemini_api_key_here
+
+# Hugging Face Token (Required)
+HUGGINGFACE_TOKEN=your_huggingface_token_here
+
+# Optional: Mirror for China users
+HF_ENDPOINT=https://hf-mirror.com
+```
+
+## 10. Install Web Frontend (Optional)
+
+If you want to use the web interface:
+
+```bash
+cd web
+npm install
+cd ..
+```
+
+**Note:** Requires [Node.js](https://nodejs.org/) v18+
+
+## Troubleshooting
+
+### PyTorch CUDA Unavailable
+
+If `torch.cuda.is_available()` returns `False`:
+
+1. Verify NVIDIA driver is installed
+2. Verify CUDA version matches
+3. Reinstall matching PyTorch version
+
+### Model Download Failed
+
+1. Check network connection
+2. Try mirror (`HF_ENDPOINT=https://hf-mirror.com`)
+3. Manually download model files
+
+### Dependency Conflicts
+
+If encountering version conflicts:
+
+```bash
+# Remove virtual environment and start over
+rm -rf venv  # Linux/macOS
+rmdir /s venv  # Windows
+
+# Recreate virtual environment
+python -m venv venv
+# ... repeat installation steps
+```
+
+## Next Steps
+
+Installation complete! Continue to [API Configuration](/docs/getting-started/configuration).

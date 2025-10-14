@@ -1,0 +1,250 @@
+---
+title: "快速开始"
+description: "5分钟快速上手 TransVox"
+order: 3
+category: "getting-started"
+---
+
+# 快速开始
+
+本指南将帮助你在 5 分钟内处理第一个翻译视频。
+
+## 前置条件
+
+确保已完成：
+- ✅ [安装所有依赖](/docs/getting-started/installation)
+- ✅ 下载必要的 AI 模型
+- ✅ 配置 API 密钥（Gemini 和 HuggingFace）
+
+## 方法一：使用 Web 界面（推荐新手）
+
+### 1. 启动服务
+
+**使用一键启动脚本：**
+
+```bash
+# Windows
+.\start.bat
+
+# Linux
+./start.sh
+```
+
+**或手动启动：**
+
+```bash
+# 终端 1：启动后端 API
+venv\Scripts\activate  # Windows
+source venv/bin/activate  # Linux
+uvicorn api_server:app --host 0.0.0.0 --port 8000 --reload
+
+# 终端 2：启动前端
+cd web
+npm run dev
+```
+
+### 2. 访问 Web 界面
+
+打开浏览器访问：
+- **前端界面**：http://localhost:3000
+- **API 文档**：http://localhost:8000/docs
+
+### 3. 上传视频
+
+1. 点击首页的「开始翻译」按钮
+2. 拖拽上传你的视频文件
+3. 等待视频上传完成
+
+### 4. 配置翻译参数
+
+在右侧配置面板中设置：
+
+- **源语言**：auto（自动检测）或手动选择
+- **目标语言**：选择你想翻译成的语言
+- **TTS 引擎**：
+  - `indextts`：中英文，速度快
+  - `gptsovits`：中英日韩，质量高
+- **字幕模式**：
+  - `hardcode`：硬编码（烧录到视频）
+  - `soft`：软字幕（可关闭）
+  - `external`：外挂字幕文件
+  - `both`：软字幕 + 外挂文件
+
+### 5. 开始处理
+
+点击「开始处理」按钮，系统将自动完成：
+
+1. ✓ 音视频分离
+2. ✓ 人声分离
+3. ✓ 语音识别
+4. ✓ 字幕翻译
+5. ✓ TTS 语音合成
+6. ✓ 音视频合并
+
+处理完成后，可以直接下载翻译后的视频！
+
+## 方法二：使用命令行（推荐高级用户）
+
+### 全自动流程
+
+一条命令完成所有步骤：
+
+```bash
+# 英文视频翻译为中文
+python full_auto_pipeline.py input/video.mp4 --target_lang zh
+
+# 中文视频翻译为英文
+python full_auto_pipeline.py input/video.mp4 --target_lang en
+
+# 使用 GPT-SoVITS 引擎翻译为日文
+python full_auto_pipeline.py input/video.mp4 --target_lang ja --tts_engine gptsovits
+
+# 自动嵌入双语字幕
+python full_auto_pipeline.py input/video.mp4 --target_lang zh --embed-subtitle --subtitle-bilingual
+```
+
+输出文件位于：`output/<video_name>/merge/`
+
+### 分步执行
+
+如果需要更精细的控制（如手动修改字幕），可以分步执行：
+
+#### 步骤 1：预处理与转录
+
+```bash
+python stepA_prepare_and_blank_srt.py input/video.mp4 -e whisperx -l auto
+```
+
+这会生成：
+- `output/<stem>/<stem>.srt` - 原始字幕
+- `output/<stem>/<stem>_speak.wav` - 分离的人声
+- `output/<stem>/<stem>_video_only.mp4` - 无音频的视频
+
+#### 步骤 2：翻译字幕
+
+```bash
+python Scripts/step4_translate_srt.py output/<stem>/<stem>.srt --target_lang zh --whole_file
+```
+
+生成：`output/<stem>/<stem>.translated.srt`
+
+> **提示**：此时可以手动编辑翻译后的字幕文件
+
+#### 步骤 3：TTS 语音合成
+
+**使用 IndexTTS（中英文）：**
+
+```bash
+python stepB_index_pipeline.py <stem>
+```
+
+**使用 GPT-SoVITS（中英日韩）：**
+
+```bash
+python stepB_gptsovits_pipeline.py <stem> --mode local --text_lang zh --prompt_lang en
+```
+
+生成：`output/<stem>/tts*/` - 合成的音频片段
+
+#### 步骤 4：嵌入字幕（可选）
+
+```bash
+# 软字幕（可关闭）
+python stepC_embed_subtitles.py <stem> --mode soft
+
+# 硬编码字幕（烧录）
+python stepC_embed_subtitles.py <stem> --mode hardcode
+
+# 双语字幕
+python stepC_embed_subtitles.py <stem> --mode soft --bilingual
+```
+
+## 实用示例
+
+### 示例 1：快速测试（英译中）
+
+```bash
+# 1. 准备测试视频
+cp ~/Downloads/test_en.mp4 input/
+
+# 2. 一键翻译
+python full_auto_pipeline.py input/test_en.mp4 --target_lang zh
+
+# 3. 查看结果
+ls output/test_en/merge/
+# 输出：test_en_final.mp4
+```
+
+### 示例 2：高质量配音（分步）
+
+```bash
+# 1. 转录和提取音频
+python stepA_prepare_and_blank_srt.py input/video.mp4 -e whisperx -l en
+
+# 2. 翻译字幕
+python Scripts/step4_translate_srt.py output/video/video.srt --target_lang zh --whole_file
+
+# 3. 手动检查和修改字幕
+nano output/video/video.translated.srt
+
+# 4. 使用 IndexTTS 合成（速度快）
+python stepB_index_pipeline.py video
+
+# 5. 嵌入双语软字幕
+python stepC_embed_subtitles.py video --mode soft --bilingual
+```
+
+### 示例 3：批量处理
+
+```bash
+# 处理 input 目录下的所有视频
+for video in input/*.mp4; do
+  python full_auto_pipeline.py "$video" --target_lang zh --tts_engine indextts
+done
+```
+
+## 处理时间参考
+
+| 视频长度 | 处理时间（GPU） | 处理时间（CPU） |
+|---------|----------------|----------------|
+| 2分钟   | ~5-8分钟       | ~20-30分钟     |
+| 5分钟   | ~12-18分钟     | ~45-60分钟     |
+| 10分钟  | ~25-35分钟     | ~90-120分钟    |
+| 30分钟  | ~70-100分钟    | ~4-6小时       |
+
+> **注意**：实际处理时间取决于 GPU 性能、视频内容复杂度和 TTS 引擎选择。
+
+## 常见问题
+
+### Q: 处理失败了怎么办？
+
+**A:** 检查以下几点：
+1. 查看终端输出的错误信息
+2. 确认 API 密钥配置正确
+3. 检查 GPU 显存是否足够
+4. 查看 `logs/` 目录中的详细日志
+
+### Q: 如何提高处理速度？
+
+**A:** 可以：
+1. 使用 IndexTTS 引擎（比 GPT-SoVITS 快）
+2. 减少视频分辨率
+3. 使用更强的 GPU
+4. 关闭不必要的后处理
+
+### Q: 配音质量不满意？
+
+**A:** 尝试：
+1. 使用 GPT-SoVITS 引擎（质量更高）
+2. 调整 TTS 参数（速度、音高等）
+3. 手动修改字幕，优化断句
+4. 使用更高质量的源音频
+
+## 下一步
+
+恭喜！你已经完成了第一个视频翻译。接下来可以：
+
+- [CLI 使用指南](/docs/guide/cli-usage) - 学习更多命令行技巧
+- [Web 界面指南](/docs/guide/web-interface) - 探索 Web 界面的所有功能
+- [配置管理](/docs/configuration/config-file) - 自定义配置选项
+- [常见问题](/docs/faq) - 查找问题解决方案

@@ -1,0 +1,211 @@
+# API 配置
+
+TransVox 需要配置 API Keys 才能正常工作。本页面将指导您完成配置。
+
+## 配置文件
+
+TransVox 使用两个配置文件：
+
+### 1. `.env` - 环境变量（API Keys）
+
+存储敏感信息，如 API Keys：
+
+```bash
+# Gemini API Key
+GEMINI_API_KEY=your_key_here
+
+# Hugging Face Token
+HUGGINGFACE_TOKEN=your_token_here
+
+# 可选配置
+HF_ENDPOINT=https://hf-mirror.com  # Hugging Face 镜像
+```
+
+### 2. `transvox_config.json` - 用户配置
+
+存储用户偏好设置：
+
+```json
+{
+  "translation": {
+    "api_type": "gemini",
+    "target_lang": "zh",
+    "model": "gemini-2.0-flash-exp"
+  },
+  "tts": {
+    "engine": "indextts",
+    "speed": 1.0
+  }
+}
+```
+
+## 配置 Gemini API
+
+### 获取 API Key
+
+1. 访问 [Google AI Studio](https://aistudio.google.com/)
+2. 点击 "Get API Key"
+3. 创建新的 API Key
+4. 复制 API Key
+
+### 配置到 TransVox
+
+编辑 `.env` 文件：
+
+```bash
+GEMINI_API_KEY=AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+```
+
+### 选择模型
+
+TransVox 支持多个 Gemini 模型：
+
+| 模型 | 特点 | 推荐场景 |
+|------|------|----------|
+| `gemini-2.0-flash-exp` | 速度快，免费 | 日常使用（默认） |
+| `gemini-1.5-flash` | 平衡速度和质量 | 一般翻译 |
+| `gemini-1.5-pro` | 高质量 | 专业翻译 |
+
+配置模型：
+
+```bash
+python config_tool.py set translation.model gemini-2.0-flash-exp
+```
+
+## 配置 Hugging Face
+
+### 获取 Token
+
+1. 访问 [Hugging Face](https://huggingface.co/)
+2. 注册并登录
+3. Settings → Access Tokens
+4. 创建 Token（选择 Read 权限）
+
+### 同意模型使用条款
+
+**必须**同意以下模型的使用条款：
+- [pyannote/speaker-diarization-3.1](https://huggingface.co/pyannote/speaker-diarization-3.1)
+- [pyannote/segmentation-3.0](https://huggingface.co/pyannote/segmentation-3.0)
+
+点击模型页面的 "Agree" 按钮。
+
+### 配置到 TransVox
+
+编辑 `.env` 文件：
+
+```bash
+HUGGINGFACE_TOKEN=hf_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+```
+
+## 配置翻译引擎
+
+TransVox 支持两种翻译引擎。
+
+### Gemini（推荐）
+
+```bash
+python config_tool.py set translation.api_type gemini
+```
+
+**优点：**
+- 免费额度充足
+- 速度快
+- 质量好
+
+### OpenAI
+
+```bash
+python config_tool.py set translation.api_type openai
+```
+
+需要在 `.env` 中添加：
+
+```bash
+OPENAI_API_KEY=sk-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+```
+
+**优点：**
+- 翻译质量更高
+- 支持更多模型
+
+**缺点：**
+- 需要付费
+
+## 配置 TTS 引擎
+
+### IndexTTS（默认）
+
+支持中英文，Zero-Shot 语音克隆。
+
+```bash
+python config_tool.py set tts.engine indextts
+```
+
+### GPT-SoVITS
+
+支持中英日韩，更多语言选择。
+
+```bash
+python config_tool.py set tts.engine gptsovits
+```
+
+## 使用配置工具
+
+TransVox 提供了命令行配置工具 `config_tool.py`。
+
+### 查看当前配置
+
+```bash
+python config_tool.py show
+```
+
+### 设置配置项
+
+```bash
+# 设置翻译目标语言
+python config_tool.py set translation.target_lang zh
+
+# 设置 TTS 引擎
+python config_tool.py set tts.engine indextts
+
+# 设置语速
+python config_tool.py set tts.speed 1.2
+```
+
+### 使用预设
+
+```bash
+# 快速模式（速度优先）
+python config_tool.py preset fast
+
+# 高质量模式（质量优先）
+python config_tool.py preset quality
+```
+
+### 重置配置
+
+```bash
+python config_tool.py reset --confirm
+```
+
+## 配置验证
+
+配置完成后，运行验证脚本：
+
+```bash
+python check_environment.py
+```
+
+该脚本会检查：
+- ✅ Python 版本
+- ✅ PyTorch 和 CUDA
+- ✅ FFmpeg
+- ✅ API Keys
+- ✅ 模型文件
+- ✅ 依赖包
+
+如果所有检查都通过，恭喜您！TransVox 已准备就绪！
+
+## 下一步
+
+配置完成！继续查看[验证安装](/docs/getting-started/verification)。

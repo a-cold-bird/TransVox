@@ -1,0 +1,243 @@
+# Verification
+
+Before using TransVox, let's verify the installation is correct.
+
+## Automatic Verification
+
+Run the environment check script:
+
+```bash
+python check_environment.py
+```
+
+The script performs these checks:
+
+### 1. Python Environment
+
+```
+✅ Python version: 3.10.12
+✅ Virtual environment: Activated
+```
+
+**Possible issues:**
+- ❌ Python version mismatch: Install Python 3.10
+- ❌ Virtual env not activated: Run `venv\Scripts\activate` (Windows) or `source venv/bin/activate` (Linux)
+
+### 2. PyTorch and CUDA
+
+```
+✅ PyTorch: 2.4.0+cu128
+✅ CUDA available: True
+✅ CUDA version: 12.8
+✅ GPU: NVIDIA GeForce RTX 2080 Ti (11GB)
+```
+
+**Possible issues:**
+- ❌ CUDA unavailable: Check NVIDIA driver and CUDA installation
+- ❌ Insufficient GPU memory: Need at least 6GB, recommended 11GB+
+
+### 3. FFmpeg
+
+```
+✅ FFmpeg: Installed
+✅ Version: 6.0
+```
+
+**Possible issues:**
+- ❌ FFmpeg not found: Install FFmpeg and add to PATH
+
+### 4. API Keys
+
+```
+✅ Gemini API Key: Configured
+✅ Hugging Face Token: Configured
+```
+
+**Possible issues:**
+- ❌ API Key not configured: Edit `.env` file
+- ❌ API Key invalid: Verify key is correct
+
+### 5. Model Files
+
+```
+✅ MSST-WebUI models: Downloaded
+✅ GPT-SoVITS models: Downloaded
+✅ IndexTTS models: Downloaded
+✅ WhisperX models: Downloaded
+```
+
+**Possible issues:**
+- ❌ Models not downloaded: Run `python download_models.py`
+- ❌ Wrong model path: Check `tools/` directory structure
+
+### 6. Python Dependencies
+
+```
+✅ All dependencies installed
+✅ Version compatibility passed
+```
+
+**Possible issues:**
+- ❌ Missing dependencies: Run `pip install -r requirements.txt`
+- ❌ Version conflicts: Remove venv and reinstall
+
+## Manual Testing
+
+### Test API Connection
+
+#### Test Gemini API
+
+```bash
+python -c "
+import os
+from dotenv import load_dotenv
+load_dotenv()
+api_key = os.getenv('GEMINI_API_KEY')
+print(f'API Key: {api_key[:10]}...')
+print('Testing Gemini API...')
+"
+```
+
+#### Test Hugging Face
+
+```bash
+python -c "
+from huggingface_hub import HfApi
+api = HfApi()
+user = api.whoami()
+print(f'Logged in as: {user[\"name\"]}')
+"
+```
+
+### Test GPU
+
+```bash
+python -c "
+import torch
+print(f'PyTorch Version: {torch.__version__}')
+print(f'CUDA Available: {torch.cuda.is_available()}')
+if torch.cuda.is_available():
+    print(f'CUDA Version: {torch.version.cuda}')
+    print(f'GPU Count: {torch.cuda.device_count()}')
+    print(f'GPU Name: {torch.cuda.get_device_name(0)}')
+    print(f'GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB')
+"
+```
+
+### Test Model Loading
+
+#### Test IndexTTS
+
+```bash
+python -c "
+import sys
+sys.path.insert(0, 'tools/index-tts')
+from indextts.infer_v2 import IndexTTS2
+print('Loading IndexTTS...')
+tts = IndexTTS2()
+print('✅ IndexTTS loaded successfully')
+"
+```
+
+#### Test WhisperX
+
+```bash
+python -c "
+import whisperx
+print('Loading WhisperX...')
+model = whisperx.load_model('large-v3', device='cuda', compute_type='float16')
+print('✅ WhisperX loaded successfully')
+"
+```
+
+## Quick Test
+
+### Test Complete Pipeline
+
+Prepare a short video (10-30 seconds) to test the complete pipeline:
+
+```bash
+# Prepare test video
+mkdir -p input
+# Place test video in input/ directory
+
+# Run quick test
+python full_auto_pipeline.py input/test.mp4 --target_lang zh --test-mode
+```
+
+**Expected results:**
+- Video processed successfully
+- Translation subtitles generated
+- Dubbing generated
+- Final video output
+
+**Processing time:** ~2-5 minutes (depends on video length and GPU)
+
+## Web Interface Test
+
+### Start Services
+
+**Terminal 1: Start backend**
+```bash
+uvicorn api_server:app --host 0.0.0.0 --port 8000
+```
+
+**Terminal 2: Start frontend**
+```bash
+cd web
+npm run dev
+```
+
+### Access Interface
+
+Open browser and visit:
+- Frontend: http://localhost:3000
+- API Docs: http://localhost:8000/docs
+
+### Test Features
+
+1. Upload video
+2. Configure translation parameters
+3. Start processing
+4. View real-time progress
+5. Download results
+
+## Common Issues
+
+### CUDA Out of Memory
+
+If encountering CUDA OOM errors:
+
+1. Reduce batch size
+2. Use smaller models
+3. Close other GPU-using programs
+
+### Slow Model Loading
+
+First model load takes 1-3 minutes, this is normal. Subsequent starts are faster.
+
+### API Quota Limit
+
+Gemini API has rate limits. If encountering quota errors:
+1. Wait and retry later
+2. Upgrade to higher API tier
+3. Switch to OpenAI API
+
+## Verification Checklist
+
+Installation verified, confirm:
+
+- [ ] `check_environment.py` all checks passed
+- [ ] GPU and CUDA working normally
+- [ ] API Keys configured correctly
+- [ ] All models downloaded
+- [ ] Successfully processed test video
+- [ ] Web interface accessible
+
+## Next Steps
+
+All verified! 🎉 Now you can:
+
+- View [CLI Usage Guide](/docs/user-guide/cli-usage)
+- View [Web Interface Guide](/docs/user-guide/web-interface)
+- Start your first translation project!

@@ -1,0 +1,208 @@
+{
+  "common": {
+    "loading": "로딩 중...",
+    "error": "오류",
+    "success": "성공",
+    "cancel": "취소",
+    "confirm": "확인",
+    "save": "저장",
+    "delete": "삭제",
+    "edit": "편집",
+    "close": "닫기",
+    "back": "뒤로"
+  },
+  "nav": {
+    "home": "홈",
+    "workspace": "작업 공간",
+    "docs": "문서",
+    "getStarted": "시작하기",
+    "backToHome": "홈으로 돌아가기"
+  },
+  "home": {
+    "title": "AI 기반 비디오 번역 플랫폼",
+    "subtitle": "제로샷 음성 복제 · 다국어 번역",
+    "description": "최첨단 AI 기술을 사용하여 비디오를 자동 번역하고 원본 화자의 음성을 복제하여 전 세계 청중에게 도달하세요",
+    "startTranslating": "시작하기",
+    "viewDocs": "문서 보기",
+    "features": "핵심 기능",
+    "featuresDesc": "최첨단 AI 기술을 통합한 전문 비디오 번역 솔루션",
+    "workflow": "작업 흐름",
+    "workflowDesc": "간단한 3단계로 비디오 번역 완료",
+    "readyTitle": "시작할 준비가 되셨나요?",
+    "readyDesc": "지금 TransVox를 사용하여 비디오 콘텐츠가 언어 장벽을 넘어 전 세계 청중에게 도달하도록 하세요",
+    "launchWorkspace": "작업 공간 실행",
+    "tags": {
+      "zeroShot": "제로샷 복제",
+      "multiLang": "다국어",
+      "autoSubtitle": "자동 자막",
+      "aiDub": "AI 더빙",
+      "oneClick": "원클릭 내보내기"
+    },
+    "step1": {
+      "title": "비디오 업로드",
+      "desc": "다양한 비디오 형식 지원, 드래그 앤 드롭으로 업로드, 시스템이 비디오 매개변수를 자동으로 인식"
+    },
+    "step2": {
+      "title": "매개변수 구성",
+      "desc": "대상 언어 선택, 번역 및 더빙 매개변수 조정, 효과 미리보기"
+    },
+    "step3": {
+      "title": "결과 내보내기",
+      "desc": "자동 처리 후 번역 및 더빙된 비디오 파일 다운로드"
+    }
+  },
+  "features": {
+    "voiceClone": {
+      "title": "제로샷 음성 복제",
+      "desc": "훈련 필요 없이 원본 화자의 음성 특성을 자동으로 분석하고 복제하여 매우 자연스러운 더빙 효과를 구현합니다. 다양한 음색과 말하기 속도 조정을 지원합니다.",
+      "feature1": "훈련 데이터 불필요",
+      "feature2": "자동 음성 분석",
+      "feature3": "고충실도 오디오"
+    },
+    "multiLang": {
+      "title": "지능형 다국어 번역",
+      "desc": "중국어, 영어, 일본어, 한국어 4개 언어 간 번역을 지원하며, 고급 신경 기계 번역 기술을 사용하여 정확하고 자연스러운 번역을 보장하고 대상 언어의 표현 습관에 맞춥니다.",
+      "feature1": "4개 언어 지원",
+      "feature2": "문맥 이해",
+      "feature3": "전문 용어 적용"
+    },
+    "subtitle": {
+      "title": "자동 자막 생성",
+      "desc": "WhisperX를 사용한 고정밀 음성 인식으로 타임라인이 정확한 자막 파일을 자동 생성합니다. 다양한 형식의 내보내기를 지원합니다.",
+      "feature1": "고정밀 인식",
+      "feature2": "타임라인 정렬",
+      "feature3": "다양한 형식"
+    },
+    "autoProcess": {
+      "title": "완전 자동 처리",
+      "desc": "원클릭으로 비디오 번역 및 더빙 전체 워크플로를 완료하고, 오디오 분리, 음성 인식, 번역, 더빙, 합성 등의 복잡한 단계를 자동 처리합니다.",
+      "feature1": "자동화 워크플로",
+      "feature2": "일괄 처리",
+      "feature3": "실시간 진행 상황"
+    }
+  },
+  "upload": {
+    "dragDrop": "여기에 비디오를 드래그 앤 드롭",
+    "orClick": "또는 클릭하여 파일 선택",
+    "supported": "지원 형식: MP4, MKV, AVI, MOV, WebM",
+    "uploading": "업로드 중...",
+    "uploadVideo": "비디오 업로드"
+  },
+  "pipeline": {
+    "title": "파이프라인 구성",
+    "desc": "비디오 번역 및 더빙 파이프라인 구성",
+    "translation": "번역",
+    "sourceLanguage": "소스 언어",
+    "targetLanguage": "대상 언어",
+    "tts": "텍스트 음성 변환",
+    "ttsEngine": "TTS 엔진",
+    "subtitle": "자막 임베딩",
+    "embeddingMode": "임베딩 모드",
+    "modes": {
+      "hardcode": "하드코딩 (번인)",
+      "soft": "소프트 자막 (토글 가능)",
+      "external": "외부 자막",
+      "both": "소프트 + 외부"
+    },
+    "modeDesc": {
+      "hardcode": "비디오에 번인된 자막, 끌 수 없음",
+      "soft": "컨테이너에 임베딩된 자막, 켜고 끌 수 있음",
+      "external": "별도의 자막 파일 (.srt/.ass)",
+      "both": "소프트 자막 및 외부 자막 파일"
+    },
+    "startPipeline": "파이프라인 시작"
+  },
+  "workspace": {
+    "title": "TransVox 작업 공간",
+    "processing": "비디오 처리 중",
+    "readyToProcess": "처리 준비 완료",
+    "configureRightPanel": "오른쪽 패널에서 번역 매개변수를 설정하세요",
+    "starting": "시작 중...",
+    "steps": "파이프라인 단계",
+    "stepsDesc": "자동화된 비디오 번역 워크플로",
+    "step1": { "name": "오디오 추출", "desc": "비디오에서 오디오 분리" },
+    "step2": { "name": "보컬 분리", "desc": "배경에서 음성 분리" },
+    "step3": { "name": "음성 인식", "desc": "음성을 텍스트로 변환" },
+    "step4": { "name": "번역", "desc": "대상 언어로 번역" },
+    "step5": { "name": "TTS 생성", "desc": "더빙 오디오 생성" },
+    "step6": { "name": "병합 및 처리", "desc": "오디오와 비디오 결합" },
+    "complete": "완료",
+    "completedSuccess": "파이프라인이 완료되었습니다!",
+    "failed": "파이프라인이 실패했습니다",
+    "mode": "모드",
+    "output": "출력",
+    "subtitle": "자막"
+  },
+  "languages": {
+    "en": "영어",
+    "zh": "중국어",
+    "ja": "일본어",
+    "ko": "한국어"
+  },
+  "settings": {
+    "title": "설정",
+    "api": "API 구성",
+    "apiKey": "API 키",
+    "baseUrl": "기본 URL",
+    "translation": "번역 설정",
+    "provider": "번역 제공자",
+    "project": "프로젝트 설정",
+    "autoNumbering": "자동 번호 매기기",
+    "autoNumberingDesc": "출력 폴더에 자동으로 번호 매기기",
+    "outputDir": "출력 디렉토리",
+    "save": "설정 저장",
+    "reset": "기본값으로 재설정",
+    "saved": "설정이 저장되었습니다"
+  },
+  "tools": {
+    "title": "도구 상자",
+    "download": "비디오 다운로드",
+    "downloadDesc": "URL에서 비디오 다운로드",
+    "subtitleEditor": "자막 편집기",
+    "subtitleEditorDesc": "자막 편집 및 내보내기",
+    "audioSeparator": "오디오 분리",
+    "audioSeparatorDesc": "보컬과 배경 분리",
+    "transcribe": "음성 인식",
+    "transcribeDesc": "자막 파일 생성",
+    "translate": "자막 번역",
+    "translateDesc": "AI로 자막 번역"
+  },
+  "download": {
+    "title": "비디오 다운로드",
+    "url": "비디오 URL",
+    "urlPlaceholder": "비디오 URL 입력 (YouTube 등)",
+    "download": "다운로드",
+    "downloading": "다운로드 중...",
+    "success": "다운로드 완료",
+    "autoTranslate": "다운로드 후 자동 번역",
+    "selectQuality": "품질 선택"
+  },
+  "subtitleEditor": {
+    "title": "자막 편집기",
+    "import": "가져오기",
+    "export": "내보내기",
+    "add": "추가",
+    "delete": "삭제",
+    "preview": "미리보기",
+    "style": "스타일",
+    "index": "번호",
+    "startTime": "시작 시간",
+    "endTime": "종료 시간",
+    "text": "텍스트",
+    "fontFamily": "글꼴",
+    "fontSize": "크기",
+    "fontColor": "색상",
+    "bgColor": "배경",
+    "outlineColor": "윤곽선",
+    "outlineWidth": "윤곽선 너비",
+    "bold": "굵게",
+    "italic": "기울임",
+    "alignment": "정렬",
+    "format": "형식",
+    "importFile": "파일 가져오기",
+    "exportAs": "내보내기"
+  }
+}
+
+
+

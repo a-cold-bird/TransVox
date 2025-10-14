@@ -1,0 +1,269 @@
+{
+  "common": {
+    "loading": "加载中...",
+    "error": "错误",
+    "success": "成功",
+    "cancel": "取消",
+    "confirm": "确认",
+    "save": "保存",
+    "delete": "删除",
+    "edit": "编辑",
+    "close": "关闭",
+    "back": "返回"
+  },
+  "nav": {
+    "home": "首页",
+    "workspace": "工作空间",
+    "docs": "文档",
+    "getStarted": "开始使用",
+    "backToHome": "返回首页"
+  },
+  "home": {
+    "title": "AI 驱动的视频翻译平台",
+    "subtitle": "零样本声音克隆 · 多语言翻译",
+    "description": "使用最先进的 AI 技术，自动翻译视频并克隆原说话人声音，让您的内容触达全球观众",
+    "startTranslating": "开始使用",
+    "viewDocs": "查看文档",
+    "features": "核心功能",
+    "featuresDesc": "集成最先进的 AI 技术，提供专业的视频翻译解决方案",
+    "workflow": "使用流程",
+    "workflowDesc": "简单三步，完成视频翻译",
+    "readyTitle": "准备好开始了吗？",
+    "readyDesc": "立即使用 TransVox，让您的视频内容跨越语言边界，触达全球观众",
+    "launchWorkspace": "启动工作空间",
+    "tags": {
+      "zeroShot": "零样本克隆",
+      "multiLang": "多语言支持",
+      "autoSubtitle": "自动字幕",
+      "aiDub": "AI配音",
+      "oneClick": "一键导出"
+    },
+    "step1": {
+      "title": "上传视频",
+      "desc": "支持多种视频格式，拖拽即可上传，系统自动识别视频参数"
+    },
+    "step2": {
+      "title": "配置参数",
+      "desc": "选择目标语言，调整翻译和配音参数，预览效果"
+    },
+    "step3": {
+      "title": "导出成品",
+      "desc": "自动处理完成后，下载翻译配音后的视频文件"
+    }
+  },
+  "features": {
+    "voiceClone": {
+      "title": "零样本声音克隆",
+      "desc": "无需训练，自动分析并克隆原视频说话人的声音特征，实现高度自然的配音效果。支持多种音色和语速调节。",
+      "feature1": "无需训练数据",
+      "feature2": "自动声音分析",
+      "feature3": "高保真音质"
+    },
+    "multiLang": {
+      "title": "智能多语言翻译",
+      "desc": "支持中英日韩四种语言互译，采用先进的神经机器翻译技术，确保翻译准确自然，符合目标语言的表达习惯。",
+      "feature1": "支持4种语言",
+      "feature2": "上下文理解",
+      "feature3": "专业术语适配"
+    },
+    "subtitle": {
+      "title": "自动字幕生成",
+      "desc": "使用 WhisperX 进行高精度语音识别，自动生成时间轴精确的字幕文件，支持多种格式导出。",
+      "feature1": "高精度识别",
+      "feature2": "时间轴对齐",
+      "feature3": "多格式支持"
+    },
+    "autoProcess": {
+      "title": "全自动处理",
+      "desc": "一键完成视频翻译配音全流程，自动处理音频分离、语音识别、翻译、配音、合成等复杂步骤。",
+      "feature1": "自动化流程",
+      "feature2": "批量处理",
+      "feature3": "进度实时跟踪"
+    }
+  },
+  "upload": {
+    "dragDrop": "拖放视频到这里",
+    "orClick": "或点击选择文件",
+    "supported": "支持的格式：MP4, MKV, AVI, MOV, WebM",
+    "uploading": "上传中...",
+    "uploadVideo": "上传视频"
+  },
+  "pipeline": {
+    "title": "流水线配置",
+    "desc": "配置视频翻译和配音流水线",
+    "translation": "翻译",
+    "sourceLanguage": "源语言",
+    "targetLanguage": "目标语言",
+    "tts": "文字转语音",
+    "ttsEngine": "TTS 引擎",
+    "subtitle": "字幕嵌入",
+    "embeddingMode": "嵌入模式",
+    "modes": {
+      "hardcode": "硬编码（烧录）",
+      "soft": "软字幕（可切换）",
+      "external": "外挂字幕",
+      "both": "软字幕 + 外挂"
+    },
+    "modeDesc": {
+      "hardcode": "字幕烧录到视频中，无法关闭",
+      "soft": "字幕嵌入容器中，可以开关",
+      "external": "独立的字幕文件（.srt/.ass）",
+      "both": "软字幕和外挂字幕文件"
+    },
+    "startPipeline": "启动流水线"
+  },
+  "workspace": {
+    "title": "TransVox 工作空间",
+    "processing": "处理视频中",
+    "readyToProcess": "准备开始处理",
+    "configureRightPanel": "请在右侧配置面板中设置翻译参数",
+    "starting": "启动中...",
+    "steps": "流水线步骤",
+    "stepsDesc": "自动化视频翻译工作流程",
+    "step1": { "name": "提取音频", "desc": "从视频中分离音频" },
+    "step2": { "name": "人声分离", "desc": "从背景中分离人声" },
+    "step3": { "name": "语音转文字", "desc": "将语音转换为文本" },
+    "step4": { "name": "翻译", "desc": "翻译到目标语言" },
+    "step5": { "name": "TTS 生成", "desc": "生成配音音频" },
+    "step6": { "name": "合并处理", "desc": "合并音频和视频" },
+    "complete": "完成",
+    "completedSuccess": "流水线完成！",
+    "failed": "流水线失败",
+    "mode": "模式",
+    "output": "输出",
+    "subtitle": "字幕"
+  },
+  "languages": {
+    "en": "英语",
+    "zh": "中文",
+    "ja": "日语",
+    "ko": "韩语"
+  },
+  "settings": {
+    "title": "设置",
+    "api": "API 配置",
+    "apiKey": "API 密钥",
+    "baseUrl": "基础 URL",
+    "translation": "翻译设置",
+    "provider": "翻译服务商",
+    "project": "项目设置",
+    "autoNumbering": "自动编号",
+    "autoNumberingDesc": "自动为输出文件夹编号",
+    "outputDir": "输出目录",
+    "save": "保存设置",
+    "reset": "恢复默认",
+    "saved": "设置已保存"
+  },
+  "tools": {
+    "title": "工具箱",
+    "download": "视频下载",
+    "downloadDesc": "从URL下载视频",
+    "subtitleEditor": "字幕编辑器",
+    "subtitleEditorDesc": "编辑和导出字幕",
+    "audioSeparator": "音频分离",
+    "audioSeparatorDesc": "分离人声和背景音乐",
+    "transcribe": "语音识别",
+    "transcribeDesc": "生成字幕文件",
+    "translate": "字幕翻译",
+    "translateDesc": "使用 AI 翻译字幕"
+  },
+  "download": {
+    "title": "视频下载",
+    "url": "视频链接",
+    "urlPlaceholder": "输入视频URL（支持YouTube等）",
+    "download": "下载",
+    "downloading": "下载中...",
+    "success": "下载成功",
+    "autoTranslate": "下载后自动翻译",
+    "selectQuality": "选择质量"
+  },
+  "subtitleEditor": {
+    "title": "字幕编辑器",
+    "import": "导入字幕",
+    "export": "导出",
+    "add": "添加",
+    "delete": "删除",
+    "preview": "预览",
+    "style": "样式",
+    "index": "序号",
+    "startTime": "开始时间",
+    "endTime": "结束时间",
+    "text": "文本",
+    "fontFamily": "字体",
+    "fontSize": "字号",
+    "fontColor": "颜色",
+    "bgColor": "背景",
+    "outlineColor": "描边",
+    "outlineWidth": "描边宽度",
+    "bold": "粗体",
+    "italic": "斜体",
+    "alignment": "对齐",
+    "format": "格式",
+    "importFile": "导入文件",
+    "exportAs": "导出为"
+  },
+  "docs": {
+    "tableOfContents": "目录",
+    "welcome": {
+      "title": "欢迎使用 TransVox 文档",
+      "description": "了解如何使用 TransVox 进行 AI 视频翻译和语音克隆"
+    },
+    "sections": {
+      "gettingStarted": "快速开始",
+      "features": "功能特性",
+      "apiReference": "API 参考",
+      "advanced": "进阶教程"
+    },
+    "items": {
+      "introduction": "简介",
+      "installation": "安装",
+      "quickStart": "快速入门",
+      "videoTranslation": "视频翻译",
+      "voiceCloning": "声音克隆",
+      "subtitleProcessing": "字幕处理",
+      "webTools": "Web 工具箱",
+      "restApi": "REST API",
+      "configuration": "配置",
+      "customModels": "自定义模型",
+      "performanceTuning": "性能优化"
+    },
+    "getting-started.title": "快速开始",
+    "getting-started.title.desc": "TransVox 安装和设置快速指南",
+    "getting-started.introduction": "简介",
+    "getting-started.requirements": "环境要求",
+    "getting-started.installation": "安装",
+    "getting-started.apiConfiguration": "API 配置",
+    "getting-started.verification": "验证安装",
+    "user-guide.title": "使用指南",
+    "user-guide.title.desc": "TransVox 功能完整使用指南",
+    "user-guide.cliUsage": "CLI 使用",
+    "user-guide.webInterface": "Web 界面",
+    "user-guide.autoPipeline": "自动流程",
+    "user-guide.stepByStep": "分步执行",
+    "configuration.title": "配置",
+    "configuration.title.desc": "配置 TransVox 设置和引擎",
+    "configuration.configFiles": "配置文件",
+    "configuration.ttsEngines": "TTS 引擎",
+    "configuration.translationEngines": "翻译引擎",
+    "configuration.advanced": "高级配置",
+    "tools-guide.title": "工具",
+    "tools-guide.title.desc": "视频处理的独立工具",
+    "tools-guide.videoDownload": "视频下载",
+    "tools-guide.subtitleTools": "字幕工具",
+    "tools-guide.audioSeparation": "音频分离",
+    "tools-guide.ttsSynthesis": "TTS 合成",
+    "faq.title": "常见问题",
+    "faq.title.desc": "常见问题和故障排查",
+    "faq.environment": "环境问题",
+    "faq.models": "模型下载",
+    "faq.gpuIssues": "GPU 问题",
+    "faq.apiErrors": "API 错误",
+    "advanced.title": "进阶教程",
+    "advanced.title.desc": "开发者进阶主题",
+    "advanced.customModels": "自定义模型",
+    "advanced.apiDevelopment": "API 开发",
+    "advanced.contributing": "贡献指南"
+  }
+}
+
+

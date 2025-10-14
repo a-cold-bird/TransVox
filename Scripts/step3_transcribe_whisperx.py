@@ -44,11 +44,16 @@ def transcribe_audio(
     language: str = 'auto',
     model: str = 'large-v3',
     diarize: bool = True,
-    device: str = 'cuda'
+    device: str = 'cuda',
+    beam_size: int = 5,
+    temperature: float = 0.0,
+    vad_threshold: float = 0.5,
+    min_speakers: int = 1,
+    max_speakers: int = 5
 ) -> Path:
     """
     使用 WhisperX 转录音频
-    
+
     Args:
         audio_path: 音频文件路径
         output_path: 输出 SRT 路径（不含扩展名）
@@ -56,7 +61,12 @@ def transcribe_audio(
         model: Whisper 模型大小
         diarize: 是否启用说话人识别
         device: 设备（cuda/cpu）
-    
+        beam_size: 束搜索大小
+        temperature: 采样温度
+        vad_threshold: VAD阈值
+        min_speakers: 最少说话人数
+        max_speakers: 最多说话人数
+
     Returns:
         生成的 SRT 文件路径
     """
@@ -65,7 +75,12 @@ def transcribe_audio(
     logger.info(f"  模型: {model}")
     logger.info(f"  语言: {language}")
     logger.info(f"  说话人识别: {'启用' if diarize else '禁用'}")
-    
+    logger.info(f"  束搜索大小: {beam_size}")
+    logger.info(f"  采样温度: {temperature}")
+    logger.info(f"  VAD阈值: {vad_threshold}")
+    if diarize:
+        logger.info(f"  说话人数量范围: {min_speakers}-{max_speakers}")
+
     # 构建命令
     cmd = [
         sys.executable,
@@ -75,11 +90,16 @@ def transcribe_audio(
         '--device', device,
         '--no-vad',
         '-m', model,
-        '-o', str(output_path)
+        '-o', str(output_path),
+        '--beam-size', str(beam_size),
+        '--temperature', str(temperature),
+        '--vad-threshold', str(vad_threshold)
     ]
-    
+
     if diarize:
         cmd.append('--diarize')
+        cmd.extend(['--min-speakers', str(min_speakers)])
+        cmd.extend(['--max-speakers', str(max_speakers)])
         hf_token = os.getenv('HUGGINGFACE_TOKEN')
         if hf_token:
             cmd.extend(['--hf-token', hf_token])
@@ -137,6 +157,16 @@ def main():
                        help='禁用说话人识别')
     parser.add_argument('--device', default='cuda', choices=['cuda', 'cpu'],
                        help='设备（默认: cuda）')
+    parser.add_argument('--beam-size', type=int, default=5,
+                       help='束搜索大小（默认: 5）')
+    parser.add_argument('--temperature', type=float, default=0.0,
+                       help='采样温度（默认: 0.0）')
+    parser.add_argument('--vad-threshold', type=float, default=0.5,
+                       help='VAD阈值（默认: 0.5）')
+    parser.add_argument('--min-speakers', type=int, default=1,
+                       help='最少说话人数（默认: 1）')
+    parser.add_argument('--max-speakers', type=int, default=5,
+                       help='最多说话人数（默认: 5）')
     parser.add_argument('-v', '--verbose', action='store_true',
                        help='显示详细日志')
     
@@ -163,7 +193,12 @@ def main():
             language=args.language,
             model=args.model,
             diarize=not args.no_diarize,
-            device=args.device
+            device=args.device,
+            beam_size=args.beam_size,
+            temperature=args.temperature,
+            vad_threshold=args.vad_threshold,
+            min_speakers=args.min_speakers,
+            max_speakers=args.max_speakers
         )
         
         print(f"\n[完成] 转录成功！")

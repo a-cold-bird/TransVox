@@ -1,0 +1,211 @@
+# API Configuration
+
+TransVox requires API Keys to function properly. This guide walks you through configuration.
+
+## Configuration Files
+
+TransVox uses two configuration files:
+
+### 1. `.env` - Environment Variables (API Keys)
+
+Stores sensitive information like API Keys:
+
+```bash
+# Gemini API Key
+GEMINI_API_KEY=your_key_here
+
+# Hugging Face Token
+HUGGINGFACE_TOKEN=your_token_here
+
+# Optional
+HF_ENDPOINT=https://hf-mirror.com  # Hugging Face mirror
+```
+
+### 2. `transvox_config.json` - User Preferences
+
+Stores user preference settings:
+
+```json
+{
+  "translation": {
+    "api_type": "gemini",
+    "target_lang": "zh",
+    "model": "gemini-2.0-flash-exp"
+  },
+  "tts": {
+    "engine": "indextts",
+    "speed": 1.0
+  }
+}
+```
+
+## Configure Gemini API
+
+### Get API Key
+
+1. Visit [Google AI Studio](https://aistudio.google.com/)
+2. Click "Get API Key"
+3. Create new API Key
+4. Copy the API Key
+
+### Configure in TransVox
+
+Edit `.env` file:
+
+```bash
+GEMINI_API_KEY=AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+```
+
+### Choose Model
+
+TransVox supports multiple Gemini models:
+
+| Model | Features | Use Case |
+|-------|----------|----------|
+| `gemini-2.0-flash-exp` | Fast, free | Daily use (default) |
+| `gemini-1.5-flash` | Balanced speed/quality | General translation |
+| `gemini-1.5-pro` | High quality | Professional translation |
+
+Configure model:
+
+```bash
+python config_tool.py set translation.model gemini-2.0-flash-exp
+```
+
+## Configure Hugging Face
+
+### Get Token
+
+1. Visit [Hugging Face](https://huggingface.co/)
+2. Register and sign in
+3. Settings → Access Tokens
+4. Create Token (select Read permission)
+
+### Accept Model Terms
+
+**Must** accept terms for:
+- [pyannote/speaker-diarization-3.1](https://huggingface.co/pyannote/speaker-diarization-3.1)
+- [pyannote/segmentation-3.0](https://huggingface.co/pyannote/segmentation-3.0)
+
+Click "Agree" button on model pages.
+
+### Configure in TransVox
+
+Edit `.env` file:
+
+```bash
+HUGGINGFACE_TOKEN=hf_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+```
+
+## Configure Translation Engine
+
+TransVox supports two translation engines.
+
+### Gemini (Recommended)
+
+```bash
+python config_tool.py set translation.api_type gemini
+```
+
+**Pros:**
+- Generous free quota
+- Fast
+- Good quality
+
+### OpenAI
+
+```bash
+python config_tool.py set translation.api_type openai
+```
+
+Add to `.env`:
+
+```bash
+OPENAI_API_KEY=sk-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+```
+
+**Pros:**
+- Higher quality
+- More models
+
+**Cons:**
+- Paid service
+
+## Configure TTS Engine
+
+### IndexTTS (Default)
+
+Supports Chinese/English, Zero-Shot voice cloning.
+
+```bash
+python config_tool.py set tts.engine indextts
+```
+
+### GPT-SoVITS
+
+Supports CN/EN/JA/KO, more language options.
+
+```bash
+python config_tool.py set tts.engine gptsovits
+```
+
+## Using Config Tool
+
+TransVox provides CLI config tool `config_tool.py`.
+
+### View Current Config
+
+```bash
+python config_tool.py show
+```
+
+### Set Configuration
+
+```bash
+# Set target language
+python config_tool.py set translation.target_lang zh
+
+# Set TTS engine
+python config_tool.py set tts.engine indextts
+
+# Set speech rate
+python config_tool.py set tts.speed 1.2
+```
+
+### Use Presets
+
+```bash
+# Fast mode (speed priority)
+python config_tool.py preset fast
+
+# Quality mode (quality priority)
+python config_tool.py preset quality
+```
+
+### Reset Configuration
+
+```bash
+python config_tool.py reset --confirm
+```
+
+## Verify Configuration
+
+After configuration, run verification script:
+
+```bash
+python check_environment.py
+```
+
+Checks:
+- ✅ Python version
+- ✅ PyTorch and CUDA
+- ✅ FFmpeg
+- ✅ API Keys
+- ✅ Model files
+- ✅ Dependencies
+
+If all checks pass, congratulations! TransVox is ready!
+
+## Next Steps
+
+Configuration complete! Continue to [Verification](/docs/getting-started/verification).

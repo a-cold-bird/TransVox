@@ -1,0 +1,83 @@
+---
+title: "Introduction"
+description: "Learn about TransVox - AI-Powered Video Translation and Voice Cloning System"
+order: 1
+category: "getting-started"
+---
+
+# TransVox Introduction
+
+Welcome to TransVox! A powerful AI-driven video translation and dubbing tool that automatically translates videos to target languages while preserving the original speaker's voice characteristics.
+
+## What is TransVox?
+
+TransVox is built on advanced open-source AI models including WhisperX, GPT-SoVITS, and IndexTTS, providing a complete automated pipeline from video to dubbed output.
+
+**Core Capability:** One-click multilingual video localization with Zero-Shot TTS technology for voice cloning, generating natural and fluent dubbing without training.
+
+## ✨ Key Features
+
+### 🤖 Fully Automated Pipeline
+One-click processing from video to dubbed output without manual intervention. The system automatically handles:
+- Audio/Video separation
+- Vocal separation
+- Speech recognition
+- Subtitle translation
+- TTS synthesis
+- Audio/Video merging
+
+### 🎙️ AI Voice Cloning
+Preserve original speaker's voice using Zero-Shot TTS technology:
+- **IndexTTS**: Supports Chinese/English, fast and high-quality
+- **GPT-SoVITS**: Supports CN/EN/JA/KO, natural voice
+
+No training data needed - automatically analyzes voice characteristics to generate high-fidelity dubbing.
+
+### 🌍 Multilingual Support
+- **IndexTTS**: Chinese ↔ English
+- **GPT-SoVITS**: Chinese ↔ English ↔ Japanese ↔ Korean
+- Automatic language detection
+- Intelligent line breaking and time alignment
+
+### 👥 Speaker Diarization
+Automatic speaker identification based on WhisperX and Pyannote:
+- Auto-distinguish speakers in multi-person dialogues
+- Independent voice cloning for each speaker
+- Maintains original dialogue rhythm
+
+### 📝 Smart Subtitles
+- Intelligent translation using Gemini/OpenAI API
+- Automatic line breaking and sentence segmentation
+- Bilingual subtitle support
+- Multiple subtitle formats (SRT, ASS)
+- Customizable subtitle styles
+
+## Technology Stack
+
+TransVox integrates the following advanced technologies:
+
+- **Speech Recognition**: WhisperX (high-precision transcription + speaker diarization)
+- **Vocal Separation**: MSST-WebUI (high-quality audio separation)
+- **Text Translation**: Gemini API / OpenAI API
+- **Voice Synthesis**: IndexTTS-2 / GPT-SoVITS
+- **Web Framework**: Next.js 14 + FastAPI
+- **GPU Acceleration**: CUDA 12.8 + PyTorch
+
+## Use Cases
+
+TransVox is perfect for:
+
+- 📺 **Content Creation**: Translate videos into multiple languages to expand international audience
+- 🎓 **Education & Training**: Create multilingual educational videos
+- 📢 **Corporate Communications**: Quickly produce multilingual versions of promotional videos
+- 🎬 **Film & TV Subtitles**: Add dubbing and subtitles to film and TV content
+- 🎮 **Game Localization**: Multilingual dubbing for game videos
+
+## Next Steps
+
+Ready to get started?
+
+- [Installation Guide](/docs/getting-started/installation) - Detailed installation steps
+- [Quick Start](/docs/getting-started/quick-start) - 5-minute tutorial
+- [CLI Usage Guide](/docs/guide/cli-usage) - Complete command-line tool documentation
+- [Web Interface Guide](/docs/guide/web-interface) - Web interface tutorial

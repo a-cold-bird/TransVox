@@ -24,6 +24,15 @@ except ImportError:
     PYANNOTE_AVAILABLE = False
     print("WARNING: pyannote.audio not available, speaker diarization disabled")
 
+# Simplified/Traditional Chinese conversion
+try:
+    from opencc import OpenCC
+    OPENCC_AVAILABLE = True
+    cc = OpenCC('t2s')  # 繁体到简体
+except ImportError:
+    OPENCC_AVAILABLE = False
+    print("INFO: opencc not available, Traditional Chinese will not be converted to Simplified Chinese")
+
 
 # 支持的文件扩展名
 SUPPORTED_EXTENSIONS = ['.mp4', '.wav', '.mp3', '.m4a', '.flac', '.ogg', '.wma', '.aac', '.avi', '.mkv', '.mov']
@@ -170,14 +179,21 @@ class FasterWhisperSubtitleGenerator:
             self.diarization_pipeline = None
             # 保持self.diarize=True以确保格式一致性，即使识别失败也使用默认说话人标签
     
-    def perform_diarization(self, audio_file: str) -> Dict[str, Any]:
-        """执行说话人识别"""
+    def perform_diarization(self, audio_file: str, min_speakers: int = 1, max_speakers: int = 5) -> Dict[str, Any]:
+        """
+        执行说话人识别
+
+        Args:
+            audio_file: 音频文件路径
+            min_speakers: 最少说话人数（默认1）
+            max_speakers: 最多说话人数（默认5）
+        """
         if not self.diarize or not self.diarization_pipeline:
             return {}
-            
+
         try:
-            print("Performing speaker diarization...")
-            diarization = self.diarization_pipeline(audio_file)
+            print(f"Performing speaker diarization (min_speakers={min_speakers}, max_speakers={max_speakers})...")
+            diarization = self.diarization_pipeline(audio_file, min_speakers=min_speakers, max_speakers=max_speakers)
             
             # 将结果转换为时间段和说话人映射
             speaker_segments = {}
@@ -240,8 +256,8 @@ class FasterWhisperSubtitleGenerator:
             
         return speaker_mapping
     
-    def transcribe_audio(self, 
-                        audio_path: str, 
+    def transcribe_audio(self,
+                        audio_path: str,
                         language: str = "auto",
                         initial_prompt: str = "",
                         beam_size: int = 5,
@@ -249,10 +265,12 @@ class FasterWhisperSubtitleGenerator:
                         temperature: float = 0.0,
                         condition_on_previous_text: bool = True,
                         vad_filter: bool = True,
-                        vad_parameters: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+                        vad_parameters: Optional[Dict[str, Any]] = None,
+                        min_speakers: int = 1,
+                        max_speakers: int = 5) -> Dict[str, Any]:
         """
         转录音频文件
-        
+
         Args:
             audio_path: 音频/视频文件路径
             language: 语言代码，"auto"为自动检测
@@ -263,7 +281,9 @@ class FasterWhisperSubtitleGenerator:
             condition_on_previous_text: 是否基于前文条件化
             vad_filter: 是否启用VAD过滤
             vad_parameters: VAD参数
-            
+            min_speakers: 最少说话人数（用于说话人识别）
+            max_speakers: 最多说话人数（用于说话人识别）
+
         Returns:
             转录结果字典
         """
@@ -313,7 +333,7 @@ class FasterWhisperSubtitleGenerator:
             # 执行说话人识别（如果启用）
             speaker_segments = {}
             if self.diarize:
-                speaker_segments = self.perform_diarization(audio_path)
+                speaker_segments = self.perform_diarization(audio_path, min_speakers, max_speakers)
             
             # 收集结果并分配说话人
             result_segments = []
@@ -387,11 +407,16 @@ class FasterWhisperSubtitleGenerator:
     def save_srt(self, result: Dict[str, Any], output_path: str):
         """保存SRT字幕文件"""
         srt_content = []
-        
+
         for i, segment in enumerate(result["segments"], 1):
             start_time = self.format_timestamp(segment["start"])
             end_time = self.format_timestamp(segment["end"])
             text = segment["text"].strip()
+
+            # 如果检测到中文，将繁体转换为简体
+            if OPENCC_AVAILABLE and result.get("language") == "zh":
+                text = cc.convert(text)
+
             speaker = segment.get("speaker", "spk0")
             
             # 当启用说话人识别时，始终添加说话人标签（即使识别失败也默认为speaker_1）
@@ -503,6 +528,8 @@ def main():
     parser.add_argument("--vad-threshold", type=float, default=0.5, help="VAD阈值")
     parser.add_argument("--diarize", action="store_true", help="启用说话人识别")
     parser.add_argument("--hf-token", help="Hugging Face token（说话人识别需要）")
+    parser.add_argument("--min-speakers", type=int, default=1, help="最少说话人数（默认：1）")
+    parser.add_argument("--max-speakers", type=int, default=5, help="最多说话人数（默认：5）")
     
     args = parser.parse_args()
     
@@ -565,7 +592,9 @@ def main():
             best_of=args.best_of,
             temperature=args.temperature,
             vad_filter=not args.no_vad,
-            vad_parameters=vad_parameters
+            vad_parameters=vad_parameters,
+            min_speakers=args.min_speakers,
+            max_speakers=args.max_speakers
         )
         
         # 保存结果

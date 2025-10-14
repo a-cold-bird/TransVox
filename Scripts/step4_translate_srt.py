@@ -5,15 +5,15 @@
 使用 Gemini 或 OpenAI API 翻译字幕
 
 环境变量配置:
-- TRANSLATION_API_TYPE (默认: gemini) - API类型，支持 gemini 或 openai  
-- TRANSLATION_MODEL (默认: gemini-2.5-pro) - 使用的模型
+- TRANSLATION_API_TYPE (默认: gemini) - API类型，支持 gemini 或 openai
+- TRANSLATION_MODEL (默认: gemini-2.5-flash) - 使用的模型
 
 Gemini配置:
 - GEMINI_API_KEY
 - GEMINI_PROXY_URL
 
 OpenAI配置:
-- OPENAI_API_KEY  
+- OPENAI_API_KEY
 - OPENAI_BASE_URL (默认: https://api.openai.com/v1)
 """
 
@@ -24,8 +24,19 @@ import requests
 import logging
 import time
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 import srt
+
+# 添加项目根目录到路径以导入config_manager
+project_root = Path(__file__).resolve().parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+try:
+    from config_manager import get_config_manager
+    CONFIG_MANAGER_AVAILABLE = True
+except ImportError:
+    CONFIG_MANAGER_AVAILABLE = False
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -51,35 +62,132 @@ def _load_dotenv_into_environ():
 _load_dotenv_into_environ()
 
 
-def translate_srt_whole_file(subtitles: List[srt.Subtitle], target_lang: str, max_retries: int = 5) -> List[srt.Subtitle]:
+def test_gemini_api(api_key: str, proxy_url: str, model: str = 'gemini-2.5-flash') -> bool:
+    """测试Gemini API是否可用"""
+    try:
+        # 支持自定义版本路径，不再自动拼接
+        base = proxy_url.rstrip('/')
+        # 如果用户已经提供了完整路径，直接使用；否则按原逻辑拼接
+        if 'generateContent' in base or ':generateContent' in base:
+            url = base
+        else:
+            url = f"{base}/models/{model}:generateContent"
+
+        headers = {
+            'x-goog-api-key': api_key,
+            'Content-Type': 'application/json'
+        }
+
+        payload = {
+            "contents": [{"parts": [{"text": "Hello"}]}],
+            "generationConfig": {
+                "temperature": 0.3,
+                "maxOutputTokens": 10
+            }
+        }
+
+        response = requests.post(url, headers=headers, json=payload, timeout=10)
+        response.raise_for_status()
+        return True
+    except Exception as e:
+        logger.error(f"[API测试] Gemini API不可用: {e}")
+        return False
+
+
+def test_openai_api(api_key: str, base_url: str, model: str = 'gpt-4') -> bool:
+    """测试OpenAI API是否可用"""
+    try:
+        # 支持自定义版本路径，不再自动拼接
+        base = base_url.rstrip('/')
+        # 如果用户已经提供了完整路径，直接使用；否则按原逻辑拼接
+        if 'chat/completions' in base:
+            url = base
+        else:
+            url = f"{base}/chat/completions"
+
+        headers = {
+            'Authorization': f'Bearer {api_key}',
+            'Content-Type': 'application/json'
+        }
+
+        data = {
+            "model": model,
+            "messages": [{"role": "user", "content": "Hello"}],
+            "temperature": 0.3,
+            "max_tokens": 10
+        }
+
+        response = requests.post(url, headers=headers, json=data, timeout=10)
+        response.raise_for_status()
+        return True
+    except Exception as e:
+        logger.error(f"[API测试] OpenAI API不可用: {e}")
+        return False
+
+
+def translate_srt_whole_file(subtitles: List[srt.Subtitle], target_lang: str, max_retries: int = 5,
+                            api_type: Optional[str] = None, model: Optional[str] = None,
+                            context_prompt: Optional[str] = None) -> List[srt.Subtitle]:
     """
     整文件翻译：一次性提交完整 SRT 到 API
-    
+
     Args:
         subtitles: 原始字幕列表
         target_lang: 目标语言
         max_retries: 最大重试次数
-    
+        api_type: API类型（可选，优先级：参数 > 配置文件 > 环境变量）
+        model: 模型名称（可选，优先级：参数 > 配置文件 > 环境变量）
+        context_prompt: 用户提供的上下文信息（语言、内容、专有名词等）
+
     Returns:
         翻译后的字幕列表
     """
-    api_type = os.getenv('TRANSLATION_API_TYPE', 'gemini').lower()
-    
+    # 优先级：参数 > 配置文件 > 环境变量
+    if api_type is None:
+        if CONFIG_MANAGER_AVAILABLE:
+            config = get_config_manager()
+            api_type = config.get('translation.api_type', 'gemini')
+        else:
+            api_type = os.getenv('TRANSLATION_API_TYPE', 'gemini')
+
+    api_type = api_type.lower()
+
     if api_type == 'openai':
-        return _translate_with_openai(subtitles, target_lang, max_retries)
+        return _translate_with_openai(subtitles, target_lang, max_retries, model, context_prompt)
     else:
-        return _translate_with_gemini(subtitles, target_lang, max_retries)
+        return _translate_with_gemini(subtitles, target_lang, max_retries, model, context_prompt)
 
 
-def _translate_with_gemini(subtitles: List[srt.Subtitle], target_lang: str, max_retries: int = 5) -> List[srt.Subtitle]:
+def _translate_with_gemini(subtitles: List[srt.Subtitle], target_lang: str, max_retries: int = 5,
+                          model: Optional[str] = None, context_prompt: Optional[str] = None) -> List[srt.Subtitle]:
     """使用 Gemini API 翻译"""
-    api_key = os.getenv('GEMINI_API_KEY')
-    proxy_url = os.getenv('GEMINI_PROXY_URL')
-    model = os.getenv('TRANSLATION_MODEL', 'gemini-2.5-pro')
-    
+    # 优先级：配置文件 > 环境变量
+    if CONFIG_MANAGER_AVAILABLE:
+        config = get_config_manager()
+        api_key = config.get('api.gemini_api_key', '') or os.getenv('GEMINI_API_KEY', '')
+        proxy_url = config.get('api.gemini_base_url', '') or os.getenv('GEMINI_PROXY_URL', '')
+    else:
+        api_key = os.getenv('GEMINI_API_KEY', '')
+        proxy_url = os.getenv('GEMINI_PROXY_URL', '')
+
+    # 优先级：参数 > 配置文件 > 环境变量
+    if model is None:
+        if CONFIG_MANAGER_AVAILABLE:
+            config = get_config_manager()
+            model = config.get('translation.model', 'gemini-2.5-flash')
+        else:
+            model = os.getenv('TRANSLATION_MODEL', 'gemini-2.5-flash')
+
     if not api_key or not proxy_url:
-        logger.error("GEMINI_API_KEY 或 GEMINI_PROXY_URL 未设置")
+        logger.error("[配置] GEMINI_API_KEY 或 GEMINI_PROXY_URL 未设置")
         return subtitles
+
+    # 测试API可用性
+    logger.info("[API测试] 检查Gemini API可用性...")
+    if not test_gemini_api(api_key, proxy_url, model):
+        logger.error(f"[API测试] Gemini API不可用，跳过翻译")
+        return subtitles
+    logger.info("[API测试] Gemini API可用")
     
     # 构建完整 SRT 文本
     original_srt_text = srt.compose(subtitles)
@@ -87,8 +195,19 @@ def _translate_with_gemini(subtitles: List[srt.Subtitle], target_lang: str, max_
     # 语言名称映射
     lang_names = {'zh': '中文', 'en': '英文', 'ja': '日文', 'ko': '韩文'}
     target_lang_name = lang_names.get(target_lang, target_lang)
-    
-    prompt = f"""任务：将以下 SRT 字幕翻译为{target_lang_name}。
+
+    # 构建上下文部分
+    context_section = ""
+    if context_prompt and context_prompt.strip():
+        context_section = f"""
+
+背景信息：
+{context_prompt.strip()}
+
+请在翻译时参考以上背景信息，特别注意其中提到的专有名词、人名、术语等，确保翻译的准确性和一致性。
+"""
+
+    prompt = f"""任务：将以下 SRT 字幕翻译为{target_lang_name}。{context_section}
 
 处理要求：
 1. 合并语义不完整的连续字幕，确保每条语义完整
@@ -102,6 +221,8 @@ def _translate_with_gemini(subtitles: List[srt.Subtitle], target_lang: str, max_
 - 索引编号连续（1, 2, 3...）
 - 时间戳格式：HH:MM:SS,mmm --> HH:MM:SS,mmm
 - 时间戳必须合法且连续（合并字幕时，使用第一条的开始时间和最后一条的结束时间）
+- 时间戳必须合法且连续（合并字幕时，使用第一条的开始时间和最后一条的结束时间）
+- 时间戳必须合法且连续（合并字幕时，使用第一条的开始时间和最后一条的结束时间）
 
 输出要求：
 - 只输出纯 SRT 文本内容
@@ -114,9 +235,13 @@ def _translate_with_gemini(subtitles: List[srt.Subtitle], target_lang: str, max_
 --- 原始 SRT 结束 ---
 """
     
-    # 构建端点
-    base = proxy_url[:-1] if proxy_url.endswith('/') else proxy_url
-    url = f"{base}/models/{model}:generateContent"
+    # 构建端点 - 支持自定义版本路径
+    base = proxy_url.rstrip('/')
+    # 如果用户已经提供了完整路径，直接使用；否则按原逻辑拼接
+    if 'generateContent' in base or ':generateContent' in base:
+        url = base
+    else:
+        url = f"{base}/models/{model}:generateContent"
     
     headers = {
         'x-goog-api-key': api_key,
@@ -184,26 +309,58 @@ def _translate_with_gemini(subtitles: List[srt.Subtitle], target_lang: str, max_
                 time.sleep(2 ** attempt)
     
     # 所有重试失败
-    logger.error(f"[X] 翻译失败（{max_retries} 次重试后），返回原字幕")
+    logger.error(f"[翻译失败] {max_retries} 次重试后仍然失败，将使用原字幕")
     return subtitles
 
 
-def _translate_with_openai(subtitles: List[srt.Subtitle], target_lang: str, max_retries: int = 5) -> List[srt.Subtitle]:
+def _translate_with_openai(subtitles: List[srt.Subtitle], target_lang: str, max_retries: int = 5,
+                          model: Optional[str] = None, context_prompt: Optional[str] = None) -> List[srt.Subtitle]:
     """使用 OpenAI API 翻译"""
-    api_key = os.getenv('OPENAI_API_KEY')
-    base_url = os.getenv('OPENAI_BASE_URL', 'https://api.openai.com/v1')
-    model = os.getenv('TRANSLATION_MODEL', 'gpt-4')
-    
+    # 优先级：配置文件 > 环境变量
+    if CONFIG_MANAGER_AVAILABLE:
+        config = get_config_manager()
+        api_key = config.get('api.openai_api_key', '') or os.getenv('OPENAI_API_KEY', '')
+        base_url = config.get('api.openai_base_url', '') or os.getenv('OPENAI_BASE_URL', 'https://api.openai.com/v1')
+    else:
+        api_key = os.getenv('OPENAI_API_KEY', '')
+        base_url = os.getenv('OPENAI_BASE_URL', 'https://api.openai.com/v1')
+
+    # 优先级：参数 > 配置文件 > 环境变量
+    if model is None:
+        if CONFIG_MANAGER_AVAILABLE:
+            config = get_config_manager()
+            model = config.get('translation.model', 'gpt-4')
+        else:
+            model = os.getenv('TRANSLATION_MODEL', 'gpt-4')
+
     if not api_key:
-        logger.error("OPENAI_API_KEY 未设置")
+        logger.error("[配置] OPENAI_API_KEY 未设置")
         return subtitles
+
+    # 测试API可用性
+    logger.info("[API测试] 检查OpenAI API可用性...")
+    if not test_openai_api(api_key, base_url, model):
+        logger.error(f"[API测试] OpenAI API不可用，跳过翻译")
+        return subtitles
+    logger.info("[API测试] OpenAI API可用")
     
     original_srt_text = srt.compose(subtitles)
-    
+
     lang_names = {'zh': '中文', 'en': '英文', 'ja': '日文', 'ko': '韩文'}
     target_lang_name = lang_names.get(target_lang, target_lang)
-    
-    prompt = f"""请将以下 SRT 字幕翻译为{target_lang_name}。
+
+    # 构建上下文部分
+    context_section = ""
+    if context_prompt and context_prompt.strip():
+        context_section = f"""
+
+背景信息：
+{context_prompt.strip()}
+
+请在翻译时参考以上背景信息，特别注意其中提到的专有名词、人名、术语等，确保翻译的准确性和一致性。
+"""
+
+    prompt = f"""请将以下 SRT 字幕翻译为{target_lang_name}。{context_section}
 
 要求：
 1. 仅翻译台词内容，保持索引与时间戳不变
@@ -214,8 +371,13 @@ def _translate_with_openai(subtitles: List[srt.Subtitle], target_lang: str, max_
 {original_srt_text}
 """
     
-    base = base_url[:-1] if base_url.endswith('/') else base_url
-    url = f"{base}/chat/completions"
+    # 支持自定义版本路径 - 支持自定义版本路径
+    base = base_url.rstrip('/')
+    # 如果用户已经提供了完整路径，直接使用；否则按原逻辑拼接
+    if 'chat/completions' in base:
+        url = base
+    else:
+        url = f"{base}/chat/completions"
     
     headers = {
         'Authorization': f'Bearer {api_key}',
@@ -259,20 +421,25 @@ def _translate_with_openai(subtitles: List[srt.Subtitle], target_lang: str, max_
             if attempt < max_retries - 1:
                 time.sleep(2 ** attempt)
     
-    logger.error(f"[X] 翻译失败，返回原字幕")
+    logger.error(f"[翻译失败] {max_retries} 次重试后仍然失败，将使用原字幕")
     return subtitles
 
 
-def translate_srt(srt_path: str, target_lang: str, output_path: str = None, max_retries: int = 5) -> str:
+def translate_srt(srt_path: str, target_lang: str, output_path: str = None, max_retries: int = 5,
+                 api_type: Optional[str] = None, model: Optional[str] = None,
+                 context_prompt: Optional[str] = None) -> str:
     """
     翻译 SRT 字幕文件（整文件模式）
-    
+
     Args:
         srt_path: 输入SRT文件路径
         target_lang: 目标语言
         output_path: 输出SRT文件路径
         max_retries: 最大重试次数
-    
+        api_type: API类型（可选）
+        model: 翻译模型（可选）
+        context_prompt: 用户提供的上下文信息（语言、内容、专有名词等）
+
     Returns:
         翻译后的SRT文件路径
     """
@@ -301,14 +468,24 @@ def translate_srt(srt_path: str, target_lang: str, output_path: str = None, max_
         
         # 整文件翻译
         logger.info("[模式] 整文件翻译")
-        translated_subs = translate_srt_whole_file(subtitles, target_lang, max_retries)
-        
-        # 保存翻译结果
-        translated_content = srt.compose(translated_subs)
-        with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(translated_content)
-        
-        logger.info("[完成] 字幕翻译完成!")
+        translated_subs = translate_srt_whole_file(subtitles, target_lang, max_retries, api_type, model, context_prompt)
+
+        # 检查翻译是否成功
+        if translated_subs == subtitles:
+            logger.warning("[翻译结果] 翻译失败，使用原字幕内容")
+            # 仍然保存原字幕，但明确标记为未翻译
+            translated_content = srt.compose(subtitles)
+            with open(output_path, 'w', encoding='utf-8') as f:
+                f.write(translated_content)
+            logger.info("[文件保存] 已保存原字幕到输出文件")
+        else:
+            logger.info(f"[翻译结果] 翻译成功 (原 {len(subtitles)} 条 → 译 {len(translated_subs)} 条)")
+            # 保存翻译结果
+            translated_content = srt.compose(translated_subs)
+            with open(output_path, 'w', encoding='utf-8') as f:
+                f.write(translated_content)
+            logger.info("[完成] 字幕翻译完成!")
+
         return str(output_path)
         
     except Exception as e:
@@ -325,8 +502,11 @@ def main():
     parser.add_argument("-o", "--output", help="输出SRT文件路径（可选）")
     parser.add_argument("--max-retries", type=int, default=5, help="最大重试次数（默认: 5）")
     parser.add_argument("--whole_file", action="store_true", help="整文件翻译模式（默认启用，保留此参数以兼容旧脚本）")
+    parser.add_argument("--api_type", choices=['gemini', 'openai'], help="翻译API类型（可选，优先级高于配置文件）")
+    parser.add_argument("--model", help="翻译模型名称（可选，优先级高于配置文件）")
+    parser.add_argument("--context", help="翻译上下文信息（语言、内容、专有名词等，可选）")
     parser.add_argument("-v", "--verbose", action="store_true", help="显示详细日志")
-    
+
     args = parser.parse_args()
     
     if args.verbose:
@@ -339,7 +519,10 @@ def main():
             args.input_srt,
             args.target_lang,
             args.output,
-            args.max_retries
+            args.max_retries,
+            args.api_type,
+            args.model,
+            args.context
         )
         
         elapsed_time = time.time() - start_time

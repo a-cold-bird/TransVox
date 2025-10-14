@@ -1,0 +1,137 @@
+# Requirements
+
+Before using TransVox, please ensure your system meets the following requirements.
+
+## Hardware Requirements
+
+### GPU (Required)
+
+TransVox requires an NVIDIA GPU to run AI models.
+
+**Recommended:**
+- NVIDIA GeForce RTX 2080Ti or higher
+- VRAM: 11GB or more
+- CUDA Version: 12.8
+
+**Minimum:**
+- NVIDIA GeForce GTX 1660 Ti
+- VRAM: 6GB
+- CUDA Version: 12.1
+
+> ⚠️ **Note**: Systems without NVIDIA GPUs cannot run TransVox. AMD GPUs and integrated graphics are currently not supported.
+
+### CPU and Memory
+
+- **CPU**: Intel i5 or AMD Ryzen 5 and above
+- **Memory**: 16GB RAM (32GB recommended)
+- **Storage**: At least 20GB free space (for models and temporary files)
+
+## Software Requirements
+
+### Operating System
+
+TransVox supports:
+
+- ✅ **Windows 10/11** (Recommended)
+- ✅ **Ubuntu 20.04/22.04**
+- ✅ **macOS** (CPU mode only, not recommended)
+
+### Python
+
+- **Version**: Python 3.10 (Strongly recommended)
+- Python 3.9 or 3.11 may work but could have dependency compatibility issues
+
+### CUDA Toolkit
+
+TransVox uses PyTorch and requires corresponding CUDA version.
+
+- **Recommended**: CUDA 12.8
+- **Minimum**: CUDA 12.1
+
+**Install CUDA:**
+Visit [NVIDIA CUDA Toolkit](https://developer.nvidia.com/cuda-downloads) to download and install.
+
+### FFmpeg
+
+FFmpeg is required for audio/video processing and must be in system PATH.
+
+**Windows:**
+```bash
+# Using Scoop
+scoop install ffmpeg
+
+# Or Chocolatey
+choco install ffmpeg
+```
+
+**Linux:**
+```bash
+sudo apt-get update
+sudo apt-get install -y ffmpeg
+```
+
+**Verify Installation:**
+```bash
+ffmpeg -version
+```
+
+## API Requirements
+
+### Gemini API Key (Required)
+
+TransVox uses Gemini API for subtitle translation.
+
+**How to Get:**
+1. Visit [Google AI Studio](https://aistudio.google.com/)
+2. Sign in with Google account
+3. Create new API Key
+4. Save the API Key
+
+> 💡 **Tip**: Gemini API offers free quota sufficient for personal use.
+
+### Hugging Face Token (Required)
+
+Required for speaker diarization models (Pyannote).
+
+**How to Get:**
+1. Visit [Hugging Face](https://huggingface.co/)
+2. Register and sign in
+3. Go to Settings → Access Tokens
+4. Create new Token (Read permission required)
+5. Accept terms for Pyannote models:
+   - [pyannote/speaker-diarization-3.1](https://huggingface.co/pyannote/speaker-diarization-3.1)
+   - [pyannote/segmentation-3.0](https://huggingface.co/pyannote/segmentation-3.0)
+
+## Network Requirements
+
+### Model Downloads
+
+First run requires downloading ~10GB of model files.
+
+**For users in China:**
+Use Hugging Face mirror for faster downloads:
+```bash
+export HF_ENDPOINT=https://hf-mirror.com  # Linux
+set HF_ENDPOINT=https://hf-mirror.com     # Windows
+```
+
+### API Access
+
+- Gemini API: Requires Google service access
+- Hugging Face: Requires huggingface.co access
+
+## Checklist
+
+Before proceeding, confirm:
+
+- [ ] Have NVIDIA GPU (11GB+ VRAM)
+- [ ] Installed Python 3.10
+- [ ] Installed CUDA 12.8
+- [ ] Installed FFmpeg
+- [ ] Obtained Gemini API Key
+- [ ] Obtained Hugging Face Token
+- [ ] Network can access Google and Hugging Face
+
+## Next Steps
+
+Environment ready? Let's [install TransVox](/docs/getting-started/installation)!

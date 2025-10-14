@@ -1,0 +1,18 @@
+{
+  "translation": {
+    "api_type": "gemini",
+    "model": "gemini-2.0-flash-exp",
+    "source_lang": "auto",
+    "target_lang": "zh"
+  },
+  "tts": {
+    "engine": "indextts"
+  },
+  "output": {
+    "save_srt": true
+  },
+  "advanced": {
+    "enable_diarization": true,
+    "enable_separation": true
+  }
+}

@@ -43,14 +43,20 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 使用示例:
-  # 嵌入单语字幕（译文）
+  # 嵌入单语字幕（译文，默认硬编码）
   python stepC_embed_subtitles.py EN_test
   
-  # 嵌入双语字幕
-  python stepC_embed_subtitles.py EN_test --bilingual
+  # 嵌入双语字幕（软字幕模式）
+  python stepC_embed_subtitles.py EN_test --bilingual --mode soft
   
-  # 自定义样式
-  python stepC_embed_subtitles.py EN_test --font-size 24 --position top
+  # 外挂字幕（兼容性最好）
+  python stepC_embed_subtitles.py EN_test --mode external
+  
+  # 软字幕 + 外挂字幕（最完整）
+  python stepC_embed_subtitles.py EN_test --mode both
+  
+  # 自定义硬编码样式
+  python stepC_embed_subtitles.py EN_test --mode hardcode --font-size 24 --position top
         """
     )
     
@@ -65,15 +71,28 @@ def main():
     parser.add_argument('--no-pause', action='store_true',
                        help='不暂停等待手动编辑（自动模式）')
     
-    # 字幕样式
-    parser.add_argument('--font-size', type=int, default=15, help='字体大小（默认: 15）')
+    # 嵌入模式
+    parser.add_argument('--mode', '-m',
+                       choices=['hardcode', 'soft', 'external', 'both'],
+                       default='hardcode',
+                       help='字幕嵌入模式（默认: hardcode）')
+    parser.add_argument('--subtitle-lang', default='chi',
+                       help='字幕语言代码（软字幕模式，默认: chi）')
+    parser.add_argument('--subtitle-title', default='Chinese',
+                       help='字幕轨道名称（软字幕模式，默认: Chinese）')
+    
+    # 硬编码字幕样式
+    parser.add_argument('--font-size', type=int, default=15,
+                       help='字体大小（硬编码模式，默认: 15）')
     parser.add_argument('--font-color', default='white',
                        choices=['white', 'black', 'red', 'blue', 'green', 'yellow'],
-                       help='字体颜色（默认: white）')
-    parser.add_argument('--outline-width', type=int, default=1, help='描边宽度（默认: 1）')
+                       help='字体颜色（硬编码模式，默认: white）')
+    parser.add_argument('--outline-width', type=int, default=1,
+                       help='描边宽度（硬编码模式，默认: 1）')
     parser.add_argument('--position', choices=['top', 'bottom'], default='bottom',
-                       help='字幕位置（默认: bottom）')
-    parser.add_argument('--margin', type=int, default=50, help='垂直边距（默认: 50）')
+                       help='字幕位置（硬编码模式，默认: bottom）')
+    parser.add_argument('--margin', type=int, default=50,
+                       help='垂直边距（硬编码模式，默认: 50）')
     
     args = parser.parse_args()
     
@@ -167,13 +186,23 @@ def main():
             input()
         
         # 步骤 2: 嵌入到视频
-        output_video = output_dir / 'merge' / f"{stem}_dubbed_subtitled.mp4"
+        mode_suffix = {
+            'hardcode': '_hardcoded',
+            'soft': '_soft',
+            'external': '',
+            'both': '_with_subs'
+        }
+        suffix = mode_suffix.get(args.mode, '_subtitled')
+        output_video = output_dir / 'merge' / f"{stem}_dubbed{suffix}.mp4"
         
         cmd_embed = [
             sys.executable, 'Scripts/step9_embed_to_video.py',
             str(video_file),
             str(processed_srt),
             '-o', str(output_video),
+            '--mode', args.mode,
+            '--subtitle-lang', args.subtitle_lang,
+            '--subtitle-title', args.subtitle_title,
             '--font-size', str(args.font_size),
             '--font-color', args.font_color,
             '--outline-width', str(args.outline_width),
@@ -181,12 +210,23 @@ def main():
             '--margin', str(args.margin)
         ]
         
-        logger.info(f"[步骤 2/2] 嵌入字幕到视频...")
+        mode_desc = {
+            'hardcode': '硬编码（烧录到画面）',
+            'soft': '软字幕（内嵌到容器）',
+            'external': '外挂字幕（独立文件）',
+            'both': '软字幕 + 外挂字幕'
+        }
+        
+        logger.info(f"[步骤 2/2] 嵌入字幕到视频 ({mode_desc.get(args.mode)})...")
         result = subprocess.run(cmd_embed, check=True)
         
         if output_video.exists():
             print("\n[完成] 字幕嵌入成功！")
+            print(f"[模式] {mode_desc.get(args.mode, args.mode)}")
             print(f"[输出] {output_video}")
+            if args.mode in ['external', 'both']:
+                print(f"[字幕] {output_video.with_suffix('.srt')}")
+                print(f"[字幕] {output_video.with_suffix('.ass')}")
             return 0
         else:
             print("\n[失败] 视频生成失败")

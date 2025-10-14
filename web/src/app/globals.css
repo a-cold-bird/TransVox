@@ -1,0 +1,312 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 280 80% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 280 80% 70%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 280 80% 60%;
+    --radius: 0.5rem;
+  }
+
+  /* ==================== Light Mode Themes ==================== */
+
+  /* 蓝紫渐变 - Light */
+  .theme-blue-purple {
+    --background: 220 20% 98%;
+    --foreground: 222 47% 11%;
+    --card: 220 15% 95%;
+    --card-foreground: 222 47% 11%;
+    --popover: 220 15% 95%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 220 90% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 217 20% 90%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 217 15% 88%;
+    --muted-foreground: 215 15% 40%;
+    --accent: 240 95% 58%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 217 20% 85%;
+    --input: 217 20% 85%;
+    --ring: 220 90% 50%;
+  }
+
+  /* ==================== Dark Mode Themes ==================== */
+
+  /* 默认暗色主题 - 纯黑背景 */
+  .dark {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 280 80% 60%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 280 80% 70%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 50.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 280 80% 60%;
+  }
+
+  /* 蓝紫渐变 - Dark */
+  .dark.theme-blue-purple {
+    --background: 0 0% 0%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 12%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 12%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 220 90% 56%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 240 100% 70%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 50.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217 33% 20%;
+    --input: 217 33% 20%;
+    --ring: 220 90% 56%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Input elements */
+  input, textarea, select {
+    @apply text-foreground bg-input;
+  }
+
+  input::placeholder, textarea::placeholder {
+    @apply text-muted-foreground;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-secondary;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-muted-foreground/30 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted-foreground/50;
+}
+
+/* Animation utilities */
+.animate-in {
+  animation-fill-mode: both;
+}
+
+.fade-in-0 {
+  animation-name: fadeIn;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Subtle background gradient animation */
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes subtleGlow {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+.animated-gradient-bg {
+  background-size: 200% 200%;
+  animation: gradientShift 15s ease infinite;
+  position: relative;
+}
+
+.animated-gradient-bg::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    circle at center,
+    hsl(var(--primary) / 0.08) 0%,
+    transparent 50%
+  );
+  animation: subtleGlow 10s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.animated-gradient-bg > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Documentation prose styles */
+@layer base {
+  .prose {
+    @apply text-foreground max-w-none;
+  }
+
+  .prose h1 {
+    @apply text-4xl font-bold mt-8 mb-4 text-foreground;
+  }
+
+  .prose h2 {
+    @apply text-3xl font-bold mt-8 mb-4 border-b border-border pb-2 text-foreground;
+  }
+
+  .prose h3 {
+    @apply text-2xl font-semibold mt-6 mb-3 text-foreground;
+  }
+
+  .prose h4 {
+    @apply text-xl font-semibold mt-4 mb-2 text-foreground;
+  }
+
+  .prose p {
+    @apply my-4 leading-7 text-foreground;
+  }
+
+  .prose a {
+    @apply text-primary hover:underline font-medium;
+  }
+
+  .prose strong {
+    @apply font-semibold text-foreground;
+  }
+
+  .prose code {
+    @apply bg-muted px-1.5 py-0.5 rounded text-sm font-mono text-foreground;
+  }
+
+  .prose pre {
+    @apply bg-muted p-4 rounded-lg overflow-x-auto my-4 border border-border;
+  }
+
+  .prose pre code {
+    @apply bg-transparent px-0 py-0 text-sm;
+  }
+
+  .prose ul {
+    @apply my-4 ml-6 list-disc space-y-2;
+  }
+
+  .prose ol {
+    @apply my-4 ml-6 list-decimal space-y-2;
+  }
+
+  .prose li {
+    @apply text-foreground leading-7;
+  }
+
+  .prose li > p {
+    @apply my-1;
+  }
+
+  .prose blockquote {
+    @apply border-l-4 border-primary pl-4 my-4 italic text-muted-foreground bg-muted/30 py-2 rounded-r;
+  }
+
+  .prose table {
+    @apply w-full my-4 border-collapse;
+  }
+
+  .prose thead {
+    @apply bg-muted;
+  }
+
+  .prose th {
+    @apply border border-border p-3 font-semibold text-left text-foreground;
+  }
+
+  .prose td {
+    @apply border border-border p-3 text-foreground;
+  }
+
+  .prose img {
+    @apply rounded-lg my-4 border border-border;
+  }
+
+  .prose hr {
+    @apply my-8 border-border;
+  }
+
+  /* Code highlighting */
+  .prose .hljs {
+    @apply bg-transparent;
+  }
+}
+
+

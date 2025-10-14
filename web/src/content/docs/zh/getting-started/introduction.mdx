@@ -1,0 +1,83 @@
+---
+title: "介绍"
+description: "了解 TransVox - AI 驱动的视频翻译与语音克隆系统"
+order: 1
+category: "getting-started"
+---
+
+# TransVox 简介
+
+欢迎使用 TransVox！这是一款强大的 AI 驱动视频翻译配音工具，能够自动将视频翻译为目标语言并生成配音，同时保留原说话人的音色特征。
+
+## 什么是 TransVox？
+
+TransVox 基于 WhisperX、GPT-SoVITS、IndexTTS 等先进的开源 AI 模型构建，提供从视频到配音的完整自动化流程。
+
+**核心能力：** 一键实现多语言视频本地化，Zero-Shot TTS 技术克隆原声，无需训练即可生成自然流畅的配音。
+
+## ✨ 核心特性
+
+### 🤖 全自动流程
+一键完成从视频到配音的全流程处理，无需人工干预。系统自动处理：
+- 音视频分离
+- 人声分离
+- 语音识别
+- 字幕翻译
+- TTS 合成
+- 音视频合并
+
+### 🎙️ AI 语音克隆
+使用 Zero-Shot TTS 技术保留原说话人音色：
+- **IndexTTS**：支持中英文，速度快，质量高
+- **GPT-SoVITS**：支持中英日韩，音色自然
+
+无需训练数据，自动分析音色特征，生成高保真配音。
+
+### 🌍 多语言支持
+- **IndexTTS**：中文 ↔ 英文
+- **GPT-SoVITS**：中文 ↔ 英文 ↔ 日文 ↔ 韩文
+- 支持自动语言检测
+- 智能分行和时间对齐
+
+### 👥 说话人识别
+基于 WhisperX 和 Pyannote 的说话人自动识别：
+- 多人对话场景自动区分说话人
+- 每个说话人独立语音克隆
+- 保持原始对话节奏
+
+### 📝 智能字幕
+- 使用 Gemini/OpenAI API 智能翻译
+- 自动分行和断句
+- 支持双语字幕
+- 多种字幕格式（SRT、ASS）
+- 可自定义字幕样式
+
+## 技术栈
+
+TransVox 集成了以下先进技术：
+
+- **语音识别**：WhisperX（高精度转录 + 说话人识别）
+- **人声分离**：MSST-WebUI（高质量音频分离）
+- **文本翻译**：Gemini API / OpenAI API
+- **语音合成**：IndexTTS-2 / GPT-SoVITS
+- **Web 框架**：Next.js 14 + FastAPI
+- **GPU 加速**：CUDA 12.8 + PyTorch
+
+## 使用场景
+
+TransVox 适用于：
+
+- 📺 **视频内容创作**：将视频翻译成多种语言，拓展国际观众
+- 🎓 **教育培训**：制作多语言教学视频
+- 📢 **企业宣传**：快速制作多语言版本的宣传视频
+- 🎬 **影视字幕**：为影视作品添加配音和字幕
+- 🎮 **游戏本地化**：游戏视频的多语言配音
+
+## 下一步
+
+准备好开始了吗？
+
+- [安装指南](/docs/getting-started/installation) - 详细的安装步骤
+- [快速开始](/docs/getting-started/quick-start) - 5分钟上手教程
+- [CLI 使用指南](/docs/guide/cli-usage) - 命令行工具完整文档
+- [Web 界面指南](/docs/guide/web-interface) - Web 界面使用教程

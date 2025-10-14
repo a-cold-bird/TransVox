@@ -1,0 +1,192 @@
+# 安装步骤
+
+本页面将指导您完成 TransVox 的完整安装过程。
+
+## 1. 克隆项目
+
+首先，从 GitHub 克隆 TransVox 项目：
+
+```bash
+git clone https://github.com/a-cold-bird/TransVox.git
+cd TransVox
+```
+
+## 2. 创建虚拟环境
+
+使用 Python 虚拟环境隔离项目依赖：
+
+**Windows：**
+```powershell
+python -m venv venv
+venv\Scripts\activate
+```
+
+**Linux/macOS：**
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+> 💡 **提示**：激活虚拟环境后，命令行前会显示 `(venv)` 标志。
+
+## 3. 升级 pip
+
+```bash
+python -m pip install --upgrade pip
+```
+
+## 4. 安装 PyTorch
+
+根据您的系统安装对应版本的 PyTorch。
+
+**Windows/Linux (CUDA 12.8)：**
+```bash
+pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+```
+
+**Linux (CUDA 12.1)：**
+```bash
+pip3 install torch torchvision
+```
+
+**验证 PyTorch 安装：**
+```python
+python -c "import torch; print(f'PyTorch: {torch.__version__}'); print(f'CUDA: {torch.cuda.is_available()}')"
+```
+
+应该输出类似：
+```
+PyTorch: 2.4.0+cu128
+CUDA: True
+```
+
+## 5. 安装项目依赖
+
+```bash
+pip install -r requirements.txt
+```
+
+这将安装所有必需的 Python 包，包括：
+- WhisperX：语音识别
+- Transformers：NLP 模型
+- FastAPI：Web API
+- 以及其他依赖...
+
+**安装时间：** 约 5-10 分钟（取决于网络速度）
+
+## 6. 安装 IndexTTS
+
+IndexTTS 是 TransVox 的主要 TTS 引擎：
+
+```bash
+pip install -e tools/index-tts
+```
+
+## 7. 下载 NLTK 数据
+
+某些文本处理功能需要 NLTK 数据：
+
+```bash
+python download_nltk_data.py
+```
+
+## 8. 下载模型文件
+
+TransVox 需要多个 AI 模型才能运行。使用自动下载脚本：
+
+```bash
+python download_models.py
+```
+
+该脚本将下载：
+- **MSST-WebUI 模型**（约 3GB）：人声分离
+- **GPT-SoVITS 模型**（约 5GB）：多语言 TTS
+- **IndexTTS 模型**（约 2GB）：中英文 TTS
+
+**下载时间：** 约 20-60 分钟（取决于网络速度）
+
+### 国内用户加速
+
+如果下载速度慢，可以使用 Hugging Face 镜像：
+
+```bash
+# Windows
+set HF_ENDPOINT=https://hf-mirror.com
+
+# Linux/macOS
+export HF_ENDPOINT=https://hf-mirror.com
+
+# 然后再次运行
+python download_models.py
+```
+
+### 手动下载（可选）
+
+如果自动下载失败，可以手动下载模型。详见 [模型下载指南](/docs/faq/models)。
+
+## 9. 配置环境变量
+
+复制环境变量模板：
+
+```bash
+cp .env_template .env
+```
+
+编辑 `.env` 文件，添加您的 API Keys：
+
+```bash
+# Gemini API Key（必需）
+GEMINI_API_KEY=your_gemini_api_key_here
+
+# Hugging Face Token（必需）
+HUGGINGFACE_TOKEN=your_huggingface_token_here
+
+# 可选：国内用户镜像加速
+HF_ENDPOINT=https://hf-mirror.com
+```
+
+## 10. 安装 Web 前端（可选）
+
+如果您想使用 Web 界面：
+
+```bash
+cd web
+npm install
+cd ..
+```
+
+**注意：** 需要先安装 [Node.js](https://nodejs.org/) (v18+)
+
+## 安装故障排查
+
+### PyTorch CUDA 不可用
+
+如果 `torch.cuda.is_available()` 返回 `False`：
+
+1. 确认已安装 NVIDIA 驱动
+2. 确认 CUDA 版本匹配
+3. 重新安装对应版本的 PyTorch
+
+### 模型下载失败
+
+1. 检查网络连接
+2. 尝试使用镜像（`HF_ENDPOINT=https://hf-mirror.com`）
+3. 手动下载模型文件
+
+### 依赖冲突
+
+如果遇到依赖版本冲突：
+
+```bash
+# 删除虚拟环境重新开始
+rm -rf venv  # Linux/macOS
+rmdir /s venv  # Windows
+
+# 重新创建虚拟环境
+python -m venv venv
+# ... 重复安装步骤
+```
+
+## 下一步
+
+安装完成！现在继续[配置 API Keys](/docs/getting-started/configuration)。

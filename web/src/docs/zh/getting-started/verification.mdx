@@ -1,0 +1,244 @@
+# 验证安装
+
+在开始使用 TransVox 之前，让我们验证安装是否正确。
+
+## 自动验证
+
+运行环境检测脚本：
+
+```bash
+python check_environment.py
+```
+
+该脚本会执行以下检查：
+
+### 1. Python 环境
+
+```
+✅ Python 版本: 3.10.12
+✅ 虚拟环境: 已激活
+```
+
+**可能的问题：**
+- ❌ Python 版本不匹配：安装 Python 3.10
+- ❌ 虚拟环境未激活：运行 `venv\Scripts\activate` (Windows) 或 `source venv/bin/activate` (Linux)
+
+### 2. PyTorch 和 CUDA
+
+```
+✅ PyTorch: 2.4.0+cu128
+✅ CUDA 可用: True
+✅ CUDA 版本: 12.8
+✅ GPU: NVIDIA GeForce RTX 2080 Ti (11GB)
+```
+
+**可能的问题：**
+- ❌ CUDA 不可用：检查 NVIDIA 驱动和 CUDA 安装
+- ❌ GPU 显存不足：至少需要 6GB，推荐 11GB+
+
+### 3. FFmpeg
+
+```
+✅ FFmpeg: 已安装
+✅ 版本: 6.0
+```
+
+**可能的问题：**
+- ❌ FFmpeg 未找到：安装 FFmpeg 并添加到 PATH
+
+### 4. API Keys
+
+```
+✅ Gemini API Key: 已配置
+✅ Hugging Face Token: 已配置
+```
+
+**可能的问题：**
+- ❌ API Key 未配置：编辑 `.env` 文件
+- ❌ API Key 无效：检查 Key 是否正确
+
+### 5. 模型文件
+
+```
+✅ MSST-WebUI 模型: 已下载
+✅ GPT-SoVITS 模型: 已下载
+✅ IndexTTS 模型: 已下载
+✅ WhisperX 模型: 已下载
+```
+
+**可能的问题：**
+- ❌ 模型未下载：运行 `python download_models.py`
+- ❌ 模型路径错误：检查 `tools/` 目录结构
+
+### 6. Python 依赖
+
+```
+✅ 所有依赖包已安装
+✅ 版本兼容性检查通过
+```
+
+**可能的问题：**
+- ❌ 依赖缺失：运行 `pip install -r requirements.txt`
+- ❌ 版本冲突：删除虚拟环境重新安装
+
+## 手动测试
+
+### 测试 API 连接
+
+#### 测试 Gemini API
+
+```bash
+python -c "
+import os
+from dotenv import load_dotenv
+load_dotenv()
+api_key = os.getenv('GEMINI_API_KEY')
+print(f'API Key: {api_key[:10]}...')
+print('Testing Gemini API...')
+# 这里可以添加实际的 API 测试代码
+"
+```
+
+#### 测试 Hugging Face
+
+```bash
+python -c "
+from huggingface_hub import HfApi
+api = HfApi()
+user = api.whoami()
+print(f'Logged in as: {user[\"name\"]}')
+"
+```
+
+### 测试 GPU
+
+```bash
+python -c "
+import torch
+print(f'PyTorch Version: {torch.__version__}')
+print(f'CUDA Available: {torch.cuda.is_available()}')
+if torch.cuda.is_available():
+    print(f'CUDA Version: {torch.version.cuda}')
+    print(f'GPU Count: {torch.cuda.device_count()}')
+    print(f'GPU Name: {torch.cuda.get_device_name(0)}')
+    print(f'GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB')
+"
+```
+
+### 测试模型加载
+
+#### 测试 IndexTTS
+
+```bash
+python -c "
+import sys
+sys.path.insert(0, 'tools/index-tts')
+from indextts.infer_v2 import IndexTTS2
+print('Loading IndexTTS...')
+tts = IndexTTS2()
+print('✅ IndexTTS loaded successfully')
+"
+```
+
+#### 测试 WhisperX
+
+```bash
+python -c "
+import whisperx
+print('Loading WhisperX...')
+model = whisperx.load_model('large-v3', device='cuda', compute_type='float16')
+print('✅ WhisperX loaded successfully')
+"
+```
+
+## 快速测试
+
+### 测试完整流程
+
+准备一个短视频（10-30秒）测试完整流程：
+
+```bash
+# 准备测试视频
+mkdir -p input
+# 将测试视频放到 input/ 目录
+
+# 运行快速测试
+python full_auto_pipeline.py input/test.mp4 --target_lang zh --test-mode
+```
+
+**预期结果：**
+- 视频被成功处理
+- 生成翻译字幕
+- 生成配音
+- 输出最终视频
+
+**处理时间：** 约 2-5 分钟（取决于视频长度和 GPU 性能）
+
+## Web 界面测试
+
+### 启动服务
+
+**终端 1：启动后端**
+```bash
+uvicorn api_server:app --host 0.0.0.0 --port 8000
+```
+
+**终端 2：启动前端**
+```bash
+cd web
+npm run dev
+```
+
+### 访问界面
+
+打开浏览器访问：
+- 前端：http://localhost:3000
+- API 文档：http://localhost:8000/docs
+
+### 测试功能
+
+1. 上传视频
+2. 配置翻译参数
+3. 开始处理
+4. 查看实时进度
+5. 下载结果
+
+## 常见问题
+
+### CUDA 内存不足
+
+如果遇到 CUDA OOM (Out of Memory) 错误：
+
+1. 减少批处理大小
+2. 使用更小的模型
+3. 关闭其他使用 GPU 的程序
+
+### 模型加载慢
+
+首次加载模型会比较慢（1-3分钟），这是正常的。后续启动会更快。
+
+### API 配额限制
+
+Gemini API 有速率限制。如果遇到配额错误：
+1. 等待一段时间后重试
+2. 使用更高级的 API 套餐
+3. 切换到 OpenAI API
+
+## 验证清单
+
+安装验证完成，请确认：
+
+- [ ] `check_environment.py` 所有检查通过
+- [ ] GPU 和 CUDA 正常工作
+- [ ] API Keys 配置正确
+- [ ] 所有模型已下载
+- [ ] 能够成功处理测试视频
+- [ ] Web 界面正常访问
+
+## 下一步
+
+全部验证通过！🎉 现在您可以：
+
+- 查看 [CLI 使用指南](/docs/user-guide/cli-usage)
+- 查看 [Web 界面指南](/docs/user-guide/web-interface)
+- 开始您的第一个翻译项目！

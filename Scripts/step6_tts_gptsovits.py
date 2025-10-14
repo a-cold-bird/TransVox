@@ -69,18 +69,36 @@ class GPTSoVITSTTS:
     def _init_local_client(self):
         """初始化本地客户端"""
         try:
-            # 添加GPT-SoVITS路径到系统路径
-            gpt_sovits_root = Path("tools/GPT-SoVITS").resolve()
+            # 获取项目根目录（Scripts的父目录）
+            project_root = Path(__file__).resolve().parent.parent
+            gpt_sovits_root = project_root / "tools" / "GPT-SoVITS"
             gpt_sovits_lib = gpt_sovits_root / "GPT_SoVITS"
-            
+
+            # 验证路径存在
+            if not gpt_sovits_root.exists():
+                raise FileNotFoundError(f"GPT-SoVITS目录不存在: {gpt_sovits_root}")
+
             for path in [str(gpt_sovits_root), str(gpt_sovits_lib)]:
                 if path not in sys.path:
                     sys.path.insert(0, path)
-            
+
+            # 清除可能失败的模块导入缓存
+            # 这很重要！如果之前导入失败过，Python 会缓存失败结果
+            modules_to_clear = [
+                'tools', 'tools.i18n', 'tools.i18n.i18n',
+                'tools.audio_sr',
+                'local_tts',
+                'GPT_SoVITS', 'GPT_SoVITS.TTS_infer_pack', 'GPT_SoVITS.TTS_infer_pack.TTS'
+            ]
+            for module_name in modules_to_clear:
+                if module_name in sys.modules:
+                    del sys.modules[module_name]
+                    logger.debug(f"清除模块缓存: {module_name}")
+
             # 切换到GPT-SoVITS目录（某些模块可能依赖相对路径）
             original_cwd = os.getcwd()
             os.chdir(str(gpt_sovits_root))
-            
+
             try:
                 from local_tts import LocalTTSClient
                 # 在GPT-SoVITS目录中初始化客户端，这样相对路径才正确
@@ -139,16 +157,21 @@ class GPTSoVITSTTS:
     def _synthesize_local(self, text, text_lang, ref_audio_path, prompt_text, prompt_lang, output_path, **kwargs):
         """本地模式合成"""
         try:
+            # 获取项目根目录
+            project_root = Path(__file__).resolve().parent.parent
+            gpt_sovits_root = project_root / "tools" / "GPT-SoVITS"
+
+            # ⚠️ 重要：在切换工作目录之前就转换路径为绝对路径！
+            # 因为 resolve() 会基于当前工作目录解析相对路径
+            abs_ref_audio = Path(ref_audio_path).resolve()
+            abs_output = Path(output_path).resolve()
+
             # 切换到GPT-SoVITS目录进行合成
             original_cwd = os.getcwd()
-            gpt_sovits_root = Path("tools/GPT-SoVITS").resolve()
             os.chdir(str(gpt_sovits_root))
-            
+
             try:
-                # 转换路径为相对于GPT-SoVITS目录的路径
-                abs_ref_audio = Path(ref_audio_path).resolve()
-                abs_output = Path(output_path).resolve()
-                
+
                 success = self.local_client.synthesize_speech(
                     text=text,
                     text_lang=text_lang,
@@ -161,7 +184,7 @@ class GPTSoVITSTTS:
                 return success
             finally:
                 os.chdir(original_cwd)
-                
+
         except Exception as e:
             logger.error(f"本地合成失败: {e}")
             return False

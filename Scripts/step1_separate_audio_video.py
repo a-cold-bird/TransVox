@@ -91,8 +91,52 @@ def separate_audio_video(input_video: str, output_dir: str = None) -> tuple:
             "-vn", "-acodec", "pcm_s16le", "-ar", "44100",
             "-y", str(full_audio_path)
         ]
-        result = subprocess.run(cmd_audio, check=True, capture_output=True, text=True, encoding='utf-8', errors='replace')
-        logger.info(f"音频流分离完成: {full_audio_path}")
+        try:
+            result = subprocess.run(cmd_audio, check=True, capture_output=True, text=True, encoding='utf-8', errors='replace')
+            logger.info(f"音频流分离完成: {full_audio_path}")
+        except subprocess.CalledProcessError as e:
+            # 检查是否是因为没有音频流导致的失败
+            if "Output file #0 does not contain any stream" in e.stderr or "does not contain any stream" in e.stderr:
+                logger.warning("[警告] 视频文件没有音频流，跳过音频提取")
+                logger.warning("[提示] 创建空的音频文件以保持兼容性")
+
+                # 创建一个最小的静音音频文件
+                import struct
+
+                # WAV文件头 + 1秒静音数据 (44100 Hz, 16-bit, mono)
+                sample_rate = 44100
+                duration = 1.0  # 1秒
+                num_samples = int(sample_rate * duration)
+
+                # WAV文件头 (44字节)
+                wav_header = struct.pack('<4sL4s4sLHHLLHH4sL',
+                    b'RIFF',              # RIFF标识
+                    36 + num_samples * 2, # 文件大小
+                    b'WAVE',              # WAVE标识
+                    b'fmt ',              # fmt子块
+                    16,                   # fmt块大小
+                    1,                    # PCM格式
+                    1,                    # 单声道
+                    sample_rate,          # 采样率
+                    sample_rate * 2,      # 字节率
+                    2,                    # 块对齐
+                    16,                   # 位深度
+                    b'data',              # data子块
+                    num_samples * 2       # 数据大小
+                )
+
+                # 1秒的静音数据 (16位样本，全部为0)
+                silence_data = b'\x00\x00' * num_samples
+
+                # 写入WAV文件
+                with open(full_audio_path, 'wb') as f:
+                    f.write(wav_header)
+                    f.write(silence_data)
+
+                logger.info(f"[静音] 已创建静音音频文件: {full_audio_path}")
+            else:
+                # 其他类型的错误，重新抛出
+                raise
         
         # 检查输出文件
         if not video_only_path.exists():

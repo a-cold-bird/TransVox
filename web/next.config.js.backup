@@ -1,0 +1,34 @@
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+  swcMinify: true,
+  images: {
+    domains: ['localhost'],
+  },
+  i18n: {
+    locales: ['en', 'zh-CN'],
+    defaultLocale: 'en',
+  },
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'http://localhost:8000/api/:path*',
+      },
+    ]
+  },
+}
+
+// Try to load Nextra, but don't fail if it's not available yet
+let withNextra
+try {
+  withNextra = require('nextra')({
+    theme: 'nextra-theme-docs',
+    themeConfig: './theme.config.tsx'
+  })
+  module.exports = withNextra(nextConfig)
+} catch (e) {
+  console.warn('Nextra not configured yet, using base config')
+  module.exports = nextConfig
+}
+

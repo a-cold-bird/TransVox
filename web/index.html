@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Video Translate UI</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'PingFang SC', 'Microsoft YaHei', sans-serif; margin: 20px; }
+    .card { max-width: 900px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.05); }
+    h1 { margin-top: 0; }
+    label { display: block; margin: 12px 0 6px; font-weight: 600; }
+    input[type="text"], select { width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .btn { background: #2563eb; color: #fff; border: none; border-radius: 6px; padding: 10px 14px; cursor: pointer; margin-top: 12px; }
+    .btn:disabled { opacity: .6; cursor: not-allowed; }
+    .result { margin-top: 20px; white-space: pre-wrap; background: #f9fafb; padding: 12px; border-radius: 6px; border: 1px solid #e5e7eb; }
+    .hint { color: #6b7280; font-size: 12px; }
+    details { margin-top: 12px; }
+    textarea { width: 100%; min-height: 200px; font-family: monospace; border: 1px solid #d1d5db; border-radius: 6px; padding: 10px; resize: both; }
+    video { width: 100%; max-height: 320px; background: #000; border-radius: 6px; }
+    .spinner { display:inline-block; width:16px; height:16px; border:2px solid #fff; border-top-color:transparent; border-radius:50%; margin-left:8px; animation: spin .8s linear infinite; vertical-align: middle; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .toast { position: fixed; right: 16px; top: 16px; z-index: 9999; background: #10b981; color: #fff; padding: 10px 14px; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,.15); display:none; }
+    .toast .close { background: transparent; border: none; color: #fff; font-weight: bold; margin-left: 10px; cursor: pointer; }
+    .glass { position: fixed; right: 16px; top: 12px; width: 340px; z-index: 10000; padding: 8px 10px; border-radius: 10px; background: rgba(255,255,255,0.6); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 6px 22px rgba(0,0,0,.10); border: 1px solid rgba(255,255,255,0.45); }
+    .glass .close { position: absolute; top: 6px; right: 8px; background: transparent; border: none; font-size: 13px; cursor: pointer; color: #111827; }
+    .guide.glass { top: 92px; }
+    .md { font-size: 12px; line-height: 1.35; color: #111827; }
+    .md h2 { margin: 2px 0 2px; font-size: 12px; font-weight: 700; }
+    .md p { margin: 1px 0; }
+    .md ul { margin: 2px 0 2px 14px; padding: 0; }
+    .md li { margin: 0; }
+    
+    /* 视频历史样式 */
+    .video-item { border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin: 12px 0; background: #f9fafb; }
+    .video-item h3 { margin: 0 0 8px 0; font-size: 16px; color: #111827; }
+    .video-info { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 0; font-size: 14px; color: #6b7280; }
+    .video-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .video-actions .btn { padding: 6px 12px; font-size: 14px; }
+    .video-actions .btn-danger { background: #dc2626; }
+    .video-actions .btn-danger:hover { background: #b91c1c; }
+    .video-preview { width: 100%; max-width: 300px; height: 200px; background: #000; border-radius: 6px; margin: 8px 0; }
+    .srt-links { margin: 8px 0; }
+    .srt-links a { color: #2563eb; text-decoration: none; margin-right: 12px; font-size: 14px; }
+    .srt-links a:hover { text-decoration: underline; }
+    .empty-history { text-align: center; color: #6b7280; padding: 40px; }
+  </style>
+  <script>
+    let CURRENT_JOB = null; let CURRENT_USER = null; let PROGRESS_TIMER = null; let PRESET_VIDEO_PATH = null;
+    let VIDEO_LIMITS = { max_video_minutes: 20, max_video_bytes: 1024 * 1024 * 1024, max_video_mb: 1024 };
+    let CURRENT_FILE_VALID = false; // 当前文件是否通过验证
+    
+    // 重置按钮状态的通用函数
+    function resetButtonState(btn, oldText, outBox) {
+      btn.disabled = false;
+      btn.textContent = oldText;
+      // 移除spinner
+      const spinner = btn.querySelector('.spinner');
+      if (spinner) spinner.remove();
+      if (outBox) outBox.style.display = 'none';
+    }
+    
+    // 加载视频限制配置
+    async function loadVideoLimits() {
+      try {
+        const response = await fetch('/limits');
+        const limits = await response.json();
+        if (limits.max_video_minutes && limits.max_video_bytes) {
+          VIDEO_LIMITS = limits;
+          console.log('已加载视频限制配置:', VIDEO_LIMITS);
+        }
+      } catch (e) {
+        console.warn('加载视频限制配置失败，使用默认值:', e);
+      }
+    }
+    
+    async function loadSRT(stem) {
+      const out = document.getElementById('output');
+      try {
+        const params = new URLSearchParams();
+        params.set('stem', stem);
+        if (CURRENT_USER) params.set('user_id', CURRENT_USER);
+        if (CURRENT_JOB) params.set('job_id', CURRENT_JOB);
+        const res = await fetch(`/srt?${params.toString()}`);
+        const json = await res.json();
+        if (json.content !== undefined) {
+          document.getElementById('srt_stem').value = stem;
+          document.getElementById('srt_content').value = json.content;
+          document.getElementById('srt_box').open = true;
+        } else {
+          out.textContent = JSON.stringify(json, null, 2);
+        }
+      } catch (err) {
+        out.textContent = '加载SRT失败: ' + err;
+      }
+    }
+    async function saveSRT() {
+      const stem = document.getElementById('srt_stem').value.trim();
+      const content = document.getElementById('srt_content').value;
+      const out = document.getElementById('output');
+      if (!stem) { out.textContent = '缺少视频标识(stem)。'; return; }
+      const form = new FormData();
+      form.append('stem', stem);
+      form.append('content', content);
+      if (CURRENT_USER) form.append('user_id', CURRENT_USER);
+      if (CURRENT_JOB) form.append('job_id', CURRENT_JOB);
+      try {
+        const res = await fetch('/srt/save', { method: 'POST', body: form });
+        const json = await res.json();
+        out.textContent = JSON.stringify(json, null, 2);
+        // 保存后立即刷新最新内容（避免命名空间/legacy不同步导致未更新）
+        await loadSRT(stem);
+      } catch (err) { out.textContent = '保存SRT失败: ' + err; }
+    }
+    async function continueTTS() {
+      const out = document.getElementById('output');
+      const stem = document.getElementById('srt_stem').value.trim();
+      const ttsEngine = document.getElementById('tts_engine').value;
+      const textLang = document.getElementById('target_lang').value;
+      const srcLang = document.getElementById('source_lang').value;
+      const speedFactorStr = document.getElementById('speed_factor').value.trim();
+      if (!stem) { out.textContent = '请先加载或填写视频标识(stem)。'; return; }
+      const form = new FormData();
+      form.append('stem', stem);
+      if (CURRENT_USER && CURRENT_JOB) { form.append('user_id', CURRENT_USER); form.append('job_id', CURRENT_JOB); }
+      form.append('tts_engine', ttsEngine);
+      form.append('text_lang', textLang);
+      form.append('source_lang', srcLang);
+      form.append('prompt_lang', srcLang); // 使用源语言作为prompt_lang
+      if (ttsEngine === 'gpt-sovits' && speedFactorStr) form.append('speed_factor', speedFactorStr);
+      try {
+        const res = await fetch('/continue_tts', { method: 'POST', body: form });
+        const json = await res.json(); const outBox = document.getElementById('output'); outBox.style.display = 'block'; outBox.textContent = JSON.stringify(json, null, 2);
+        if (json && json.final_video) {
+          const path = String(json.final_video).replace(/\\/g,'/').replace(/\\/g,'/');
+          const i = path.indexOf('/output/'); if (i >= 0) { const rel = path.slice(i); const wrap = document.getElementById('final_wrap'); const v = document.getElementById('final_preview'); const dl = document.getElementById('final_download'); v.src = rel; wrap.style.display = 'block'; dl.href = rel; localStorage.setItem('final_preview_path', rel); localStorage.removeItem('final_hidden'); showToast('已完成 TTS 合并'); loadVideoHistory(); stopAutoRefresh(); }
+        }
+      } catch (err) { showToast('继续TTS失败'); stopAutoRefresh(); }
+    }
+    function setTargetLangOptions(tts) { const sel = document.getElementById('target_lang'); const current = sel.value; while (sel.firstChild) sel.removeChild(sel.firstChild); const langs = tts === 'gpt-sovits' ? ['zh','en','ja','ko'] : ['zh','en']; langs.forEach(l => { const opt = document.createElement('option'); opt.value = l; opt.textContent = l; sel.appendChild(opt); }); if (langs.includes(current)) sel.value = current; }
+    function onTTSEngineChange() { const tts = document.getElementById('tts_engine').value; setTargetLangOptions(tts); const speedWrap = document.getElementById('speed_wrap'); speedWrap.style.display = (tts === 'gpt-sovits') ? 'block' : 'none'; }
+    function deriveStemFromPath(p) { if (!p) return ''; const parts = p.replace(/\\/g,'/').split('/'); const name = parts[parts.length-1] || ''; const dot = name.lastIndexOf('.'); return dot > 0 ? name.slice(0, dot) : name; }
+    async function submitForm(e) {
+      e.preventDefault(); const btn = document.getElementById('submitBtn'); const out = document.getElementById('output');
+      btn.disabled = true; const old = btn.textContent; btn.textContent = '处理中...'; btn.insertAdjacentHTML('beforeend', '<span class="spinner"></span>'); const outBox = document.getElementById('output'); outBox.style.display = 'block'; outBox.textContent = '请求中...';
+      const form = new FormData();
+      const file = document.getElementById('file').files[0]; const sourceLang = document.getElementById('source_lang').value; const targetLang = document.getElementById('target_lang').value; const ttsEngine = document.getElementById('tts_engine').value; const transcribeEngine = document.getElementById('transcribe_engine').value; const diarization = document.getElementById('diarization').checked; const separation = document.getElementById('separation').checked; const speedFactorStr = document.getElementById('speed_factor').value.trim(); const skipTTS = document.getElementById('skip_tts').checked;
+      if (!file && !PRESET_VIDEO_PATH) { 
+        showToast('请上传视频或加载预设'); 
+        resetButtonState(btn, old, outBox);
+        return; 
+      }
+      
+      // 检查上传文件的验证状态
+      if (file && !CURRENT_FILE_VALID) {
+        showToast('请选择符合限制要求的视频文件\n当前文件超出大小或时长限制');
+        resetButtonState(btn, old, outBox);
+        return;
+      }
+      if (file) { document.getElementById('srt_stem').value = deriveStemFromPath(file.name); form.append('file', file); const url = URL.createObjectURL(file); const v = document.getElementById('upload_preview'); const w = document.getElementById('upload_wrap'); v.src = url; w.style.display = 'block'; localStorage.setItem('upload_preview_type', 'blob'); localStorage.setItem('upload_preview_name', file.name); }
+      else if (PRESET_VIDEO_PATH) { document.getElementById('srt_stem').value = deriveStemFromPath(PRESET_VIDEO_PATH); form.append('video_path', PRESET_VIDEO_PATH); const v = document.getElementById('upload_preview'); const w = document.getElementById('upload_wrap'); const rel = '/'+PRESET_VIDEO_PATH.replace(/\\/g,'/'); v.src = rel; w.style.display = 'block'; localStorage.setItem('upload_preview_type', 'preset'); localStorage.setItem('upload_preview_path', rel); }
+      form.append('source_lang', sourceLang); form.append('target_lang', targetLang); form.append('tts_engine', ttsEngine); form.append('transcribe_engine', transcribeEngine); form.append('diarization', String(diarization)); form.append('separation', String(separation)); if (ttsEngine === 'gpt-sovits' && speedFactorStr !== '') { const f2 = Number(speedFactorStr); if (!Number.isNaN(f2)) form.append('speed_factor', String(f2)); } form.append('skip_tts', String(skipTTS));
+      try {
+        try { const who = await fetch('/whoami'); const whoj = await who.json(); CURRENT_USER = whoj.user_id; document.getElementById('user_id').textContent = CURRENT_USER || '-'; document.getElementById('queue_len').textContent = String(whoj.queue_len ?? 0); } catch (e) {}
+        const res = await fetch('/process', { method: 'POST', body: form }); const json = await res.json(); outBox.textContent = JSON.stringify(json, null, 2);
+        if (json && json.status === 'queued') { showToast('已加入队列'); CURRENT_JOB = json.data && json.data.job_id ? json.data.job_id : null; if (CURRENT_JOB) startProgressPolling(CURRENT_JOB); startAutoRefresh(); }
+        if (json && json.status === 'failed') { showToast('任务失败'); stopAutoRefresh(); }
+        if (json && json.error) { 
+          // 显示详细的错误信息
+          let errorMsg = json.error;
+          if (json.file_size && json.max_size) {
+            errorMsg += `\n文件大小: ${json.file_size.toFixed(1)}MB / 限制: ${json.max_size.toFixed(1)}MB`;
+          }
+          if (json.duration && json.max_duration) {
+            errorMsg += `\n视频时长: ${json.duration.toFixed(1)}分钟 / 限制: ${json.max_duration}分钟`;
+          }
+          if (json.suggestion) {
+            errorMsg += `\n建议: ${json.suggestion}`;
+          }
+          showToast(errorMsg);
+        }
+        if (json && json.data && json.data.final_video) { const path = String(json.data.final_video).replace(/\\/g,'/').replace(/\\/g,'/'); const i = path.indexOf('/output/'); if (i >= 0) { const rel = path.slice(i); const wrap = document.getElementById('final_wrap'); const v = document.getElementById('final_preview'); const dl = document.getElementById('final_download'); v.src = rel; wrap.style.display = 'block'; dl.href = rel; localStorage.setItem('final_preview_path', rel); localStorage.removeItem('final_hidden'); showToast('处理完成'); loadVideoHistory(); stopAutoRefresh(); } }
+        if (skipTTS && json && json.data && json.data.video_stem) { const box = document.getElementById('srt_box'); box.style.display = 'block'; /* 由轮询在生成后自动加载SRT */ }
+      } catch (err) { showToast('请求失败'); stopAutoRefresh(); }
+      finally { 
+        resetButtonState(btn, old, outBox);
+      }
+    }
+    function startProgressPolling(jobId) { stopProgressPolling(); PROGRESS_TIMER = setInterval(async () => { try { const res = await fetch(`/progress?job_id=${encodeURIComponent(jobId)}`); if (!res.ok) return; const j = await res.json(); const p = Math.max(0, Math.min(100, Number(j.progress || 0))); const bar = document.getElementById('progress_bar'); const text = document.getElementById('progress_text'); bar.style.width = `${p}%`; text.textContent = `${p}% ${j.step || ''}`; // 当翻译完成或任务完成时尝试加载 translated.srt
+          if (j && j.data && j.data.video_stem) {
+            const stem = j.data.video_stem;
+            // 若已生成 translated_srt 或状态完成，则加载一次以刷新编辑区
+            if ((j.data.translated_srt) || j.status === 'succeeded') {
+              await loadSRT(stem);
+            }
+          }
+          if (j.status === 'succeeded' || j.status === 'failed' || j.status === 'cancelled') { stopProgressPolling(); showToast(j.status === 'succeeded' ? '处理完成' : (j.status === 'cancelled' ? '已取消' : '失败')); if (j.status === 'succeeded') { loadVideoHistory(); } stopAutoRefresh(); } } catch (e) {} }, 800); }
+    function stopProgressPolling() { if (PROGRESS_TIMER) clearInterval(PROGRESS_TIMER); PROGRESS_TIMER = null; }
+    async function cancelJob() { if (!CURRENT_JOB) { showToast('暂无可取消的任务'); return; } try { const r = await fetch('/cancel', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: `job_id=${encodeURIComponent(CURRENT_JOB)}` }); const jr = await r.json(); if (r.ok) { showToast('已请求取消'); } else { showToast(jr.error || '取消失败'); } } catch(e) { showToast('取消失败'); } }
+    function showToast(msg){ 
+      const t = document.getElementById('toast'); 
+      // 将换行符转换为HTML换行
+      const formattedMsg = msg.replace(/\n/g, '<br>');
+      t.innerHTML = `<span>${formattedMsg}</span><button class="close" onclick="hideToast()">×</button>`; 
+      t.style.display = 'block'; 
+      // 如果是错误信息，设置更长的显示时间
+      if (msg.includes('过大') || msg.includes('过长') || msg.includes('失败')) {
+        setTimeout(() => hideToast(), 8000); // 8秒后自动隐藏
+      }
+    }
+    function hideToast(){ const t = document.getElementById('toast'); t.style.display = 'none'; }
+  </script>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Video Translate UI (同声翻译UI)</h1>
+      <div id="notice" class="glass" style="display:block;">
+        <button class="close" onclick="document.getElementById('notice').style.display='none'">×</button>
+        <div id="notice_md" class="md"></div>
+      </div>
+      <p class="hint">说明：上传一个视频文件，完成转写/翻译/合成流程。</p>
+      <p class="hint">支持语言：中文、英文、日文、韩文</p>
+      <p class="hint">支持引擎：indextts2(比较慢、只支持中英,但是效果还可以)、gpt-sovits(支持中日英韩)</p>
+      <p class="hint">支持对翻译后的字幕文件进行手动修改再进行生成</p>
+      <p class="hint">因为整个流程所花费的时间和视频时间差不多，所以为了防止多人使用时造成用户拥堵</p>
+      <p class="hint">暂时将z视频限制到最长5分钟，并且生成过程中请耐心等待</p>
+      <div class="row">
+        <div>用户ID：<span id="user_id">-</span></div>
+        <div>排队人数：<span id="queue_len">0</span></div>
+      </div>
+      <div style="margin:8px 0; background:#e5e7eb; height:10px; border-radius:6px; position:relative;">
+        <div id="progress_bar" style="position:absolute; left:0; top:0; bottom:0; width:0%; background:#22c55e; border-radius:6px;"></div>
+      </div>
+      <div id="progress_text" class="hint">0%</div>
+      <form onsubmit="submitForm(event)">
+        <button class="btn" type="button" id="preset_btn">加载预设 (ZH_test.mp4 | gpt-sovits | whisperx)</button>
+        <label>上传视频文件</label>
+        <div id="drop_zone" style="border: 2px dashed #d1d5db; border-radius: 8px; padding: 20px; text-align: center; background: #f9fafb; margin: 8px 0; cursor: pointer; transition: all 0.2s;">
+          <div id="drop_text">拖拽视频文件到此处，或点击选择文件</div>
+          <div id="file_info" style="margin-top: 8px; font-size: 12px; color: #6b7280; display: none;"></div>
+          <div id="file_status" style="margin-top: 4px; font-size: 11px; display: none;"></div>
+          <input id="file" type="file" accept="video/*" style="display: none;" onchange="handleFileSelect(event)" />
+        </div>
+        <div id="upload_wrap" style="margin-top:8px; display:none; position:relative;">
+          <video id="upload_preview" controls></video>
+          <button type="button" class="btn" style="position:absolute; top:4px; right:4px; padding:4px 8px;" onclick="removeUpload()">×</button>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>TTS 引擎</label>
+            <select id="tts_engine" onchange="onTTSEngineChange()">
+              <option value="indextts" selected>indextts</option>
+              <option value="gpt-sovits">gpt-sovits</option>
+            </select>
+            <p class="hint">indextts 仅支持 zh/en；gpt-sovits 支持 zh/en/ja/ko</p>
+          </div>
+          <div>
+            <label>转写引擎</label>
+            <select id="transcribe_engine">
+              <option value="whisperx" selected>whisperx</option>
+              <!-- <option value="funclip">funclip</option> -->
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>输入语言</label>
+            <select id="source_lang">
+              <option value="auto" selected>auto</option>
+              <option value="zh">zh</option>
+              <option value="en">en</option>
+              <option value="ja">ja</option>
+              <option value="ko">ko</option>
+            </select>
+          </div>
+          <div>
+            <label>输出语言（必选）</label>
+            <select id="target_lang">
+              <option value="zh">zh</option>
+              <option value="en" selected>en</option>
+              <option value="ja">ja</option>
+              <option value="ko">ko</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="speed_wrap" style="display:none;">
+          <label>语速 (仅 gpt-sovits)</label>
+          <input id="speed_factor" type="number" step="0.05" min="0.5" max="2.0" placeholder="例如 1.2 (可选)" />
+          <p class="hint">>1.0 加快；<1.0 变慢；留空使用默认语速</p>
+        </div>
+
+        <label><input id="skip_tts" type="checkbox" onchange="onSkipTTSChange()" /> 只生成翻译，不进行TTS（便于手动编辑翻译SRT）</label>
+        <p class="hint">提交后可直接在下方编辑框中修改 translated.srt 然后继续TTS。</p>
+
+        <div class="row">
+          <div>
+            <label><input id="diarization" type="checkbox" checked /> 说话人识别</label>
+          </div>
+          <div>
+            <label><input id="separation" type="checkbox" checked /> 人声分离</label>
+          </div>
+        </div>
+
+        <button id="submitBtn" class="btn" type="submit">开始处理</button>
+        <button class="btn" type="button" onclick="cancelJob()">中断进程</button>
+      </form>
+      <div id="output" class="result" style="display:none;"></div>
+      <details id="srt_box" style="display:none;">
+        <summary>翻译后SRT编辑（保存后可继续TTS）</summary>
+        <input id="srt_stem" type="hidden" />
+        <label>translated.srt 内容</label>
+        <textarea id="srt_content" placeholder="在此编辑翻译后的SRT内容"></textarea>
+        <div style="margin-top:8px; display:flex; gap:8px; align-items:center;">
+          <button class="btn" type="button" onclick="saveSRT()">保存SRT</button>
+          <button class="btn" type="button" onclick="continueTTS()">继续TTS</button>
+          <div style="flex:1"></div>
+        </div>
+      </details>
+      <div id="final_wrap" style="margin-top:12px; display:none; position:relative;">
+        <label>最终视频预览</label>
+        <video id="final_preview" controls></video>
+        <div><a id="final_download" class="btn" href="#" download>下载最终视频</a></div>
+        <button type="button" class="btn" style="position:absolute; top:4px; right:4px; padding:4px 8px;" onclick="removeFinal()">×</button>
+      </div>
+      <div id="toast" class="toast"></div>
+    </div>
+    
+    <!-- 视频历史区域 -->
+    <div class="card" style="margin-top: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h2 style="margin: 0;">我的视频历史</h2>
+        <button class="btn" onclick="refreshVideoHistory()" style="padding: 6px 12px; font-size: 14px;">刷新</button>
+      </div>
+      <div id="video_history">
+        <div class="hint">正在加载视频历史...</div>
+      </div>
+    </div>
+    
+    <script>
+      // 加载视频历史
+      async function loadVideoHistory() {
+        const container = document.getElementById('video_history');
+        container.innerHTML = '<div class="hint">正在加载视频历史...</div>';
+        
+        try {
+          const res = await fetch('/videos');
+          const data = await res.json();
+          
+          if (data.error) {
+            container.innerHTML = `<div class="hint" style="color: #dc2626;">加载失败: ${data.error}</div>`;
+            return;
+          }
+          
+          displayVideoHistory(data.videos || []);
+        } catch (e) {
+          console.error('加载视频历史失败:', e);
+          container.innerHTML = '<div class="hint" style="color: #dc2626;">加载视频历史失败，请检查网络连接</div>';
+        }
+      }
+      
+      // 手动刷新视频历史
+      function refreshVideoHistory() {
+        console.log('手动刷新视频历史');
+        loadVideoHistory();
+      }
+      
+      // 处理文件选择
+      function handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (!file) {
+          CURRENT_FILE_VALID = false;
+          return;
+        }
+        
+        // 使用动态限制值
+        const maxSizeBytes = VIDEO_LIMITS.max_video_bytes;
+        const fileSizeMB = file.size / (1024 * 1024);
+        const maxSizeMB = VIDEO_LIMITS.max_video_mb;
+        
+        const fileInfo = document.getElementById('file_info');
+        const fileStatus = document.getElementById('file_status');
+        fileInfo.style.display = 'block';
+        fileStatus.style.display = 'block';
+        
+        // 检查文件大小
+        if (file.size > maxSizeBytes) {
+          fileInfo.innerHTML = `📁 ${file.name} (${fileSizeMB.toFixed(1)}MB)`;
+          fileInfo.style.color = '#6b7280';
+          fileStatus.innerHTML = `❌ 文件过大: ${fileSizeMB.toFixed(1)}MB > ${maxSizeMB.toFixed(1)}MB`;
+          fileStatus.style.color = '#dc2626';
+          CURRENT_FILE_VALID = false;
+          return;
+        }
+        
+        // 显示文件信息
+        fileInfo.innerHTML = `📁 ${file.name} (${fileSizeMB.toFixed(1)}MB)`;
+        fileInfo.style.color = '#6b7280';
+        fileStatus.innerHTML = `⏳ 检查时长中...`;
+        fileStatus.style.color = '#f59e0b';
+        CURRENT_FILE_VALID = true; // 暂时设为有效，等待时长检查
+        
+        // 创建视频预览
+        const video = document.getElementById('upload_preview');
+        const wrap = document.getElementById('upload_wrap');
+        const url = URL.createObjectURL(file);
+        video.src = url;
+        wrap.style.display = 'block';
+        
+        // 检查视频时长
+        video.onloadedmetadata = function() {
+          const duration = video.duration;
+          const durationMinutes = duration / 60;
+          const maxMinutes = VIDEO_LIMITS.max_video_minutes;
+          
+          if (duration > maxMinutes * 60) {
+            fileStatus.innerHTML = `❌ 时长过长: ${durationMinutes.toFixed(1)}分钟 > ${maxMinutes}分钟`;
+            fileStatus.style.color = '#dc2626';
+            CURRENT_FILE_VALID = false;
+          } else {
+            fileStatus.innerHTML = `✅ 文件验证通过 (${durationMinutes.toFixed(1)}分钟)`;
+            fileStatus.style.color = '#059669';
+            CURRENT_FILE_VALID = true;
+          }
+        };
+      }
+      
+      // 显示视频历史
+      function displayVideoHistory(videos) {
+        const container = document.getElementById('video_history');
+        
+        if (videos.length === 0) {
+          container.innerHTML = '<div class="empty-history">暂无视频历史</div>';
+          return;
+        }
+        
+        const html = videos.map(video => {
+          const createDate = new Date(video.create_time * 1000).toLocaleString();
+          const fileSize = formatFileSize(video.video_size);
+          
+          return `
+            <div class="video-item">
+              <h3>${video.project_id}</h3>
+              <div class="video-info">
+                <div>创建时间: ${createDate}</div>
+                <div>文件大小: ${fileSize}</div>
+              </div>
+              <video class="video-preview" controls>
+                <source src="/video/${video.video_path}" type="video/mp4">
+                您的浏览器不支持视频播放
+              </video>
+              <div class="srt-links">
+                ${video.srt_files.original ? `<a href="/srt?stem=${video.project_id}&user_id=${video.user_id}" target="_blank">原始字幕</a>` : ''}
+                ${video.srt_files.translated ? `<a href="/srt?stem=${video.project_id}&user_id=${video.user_id}" target="_blank">翻译字幕</a>` : ''}
+                ${video.srt_files.merged ? `<a href="/srt?stem=${video.project_id}&user_id=${video.user_id}" target="_blank">合并字幕</a>` : ''}
+              </div>
+              <div class="video-actions">
+                <a class="btn" href="/video/${video.video_path}" download="${video.project_id}.mp4">下载视频</a>
+                <button class="btn btn-danger" onclick="deleteVideo('${video.video_path}')">删除</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+        
+        container.innerHTML = html;
+      }
+      
+      // 格式化文件大小
+      function formatFileSize(bytes) {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+      }
+      
+      // 删除视频
+      async function deleteVideo(videoPath) {
+        if (!confirm('确定要删除这个视频项目吗？此操作不可恢复！')) {
+          return;
+        }
+        
+        try {
+          const res = await fetch(`/video/${videoPath}`, { method: 'DELETE' });
+          const data = await res.json();
+          
+          if (data.error) {
+            alert('删除失败: ' + data.error);
+          } else {
+            showToast('视频已删除');
+            loadVideoHistory(); // 重新加载列表
+          }
+        } catch (e) {
+          console.error('删除视频失败:', e);
+          alert('删除失败: ' + e.message);
+        }
+      }
+      
+      
+      // 初始化：根据默认的 TTS 引擎刷新语言选项与语速输入框
+      onTTSEngineChange();
+      (async function initWho(){ try { const res = await fetch('/whoami'); const j = await res.json(); CURRENT_USER = j.user_id; document.getElementById('user_id').textContent = CURRENT_USER || '-'; document.getElementById('queue_len').textContent = String(j.queue_len ?? 0); } catch(e) {} })();
+      // 恢复上传预览（仅对预设或已保存的路径有效；本地 blob 无法跨刷新复现）
+      (function restoreUpload(){ const t = localStorage.getItem('upload_preview_type'); if (t === 'preset') { const p = localStorage.getItem('upload_preview_path'); if (p) { const v = document.getElementById('upload_preview'); const w = document.getElementById('upload_wrap'); v.src = p; w.style.display = 'block'; } } })();
+      
+      // 加载视频历史
+      loadVideoHistory();
+      
+      // 智能自动刷新：只在有活动任务时自动刷新
+      let autoRefreshTimer = null;
+      let isUserActive = true; // 用户是否活跃
+      let lastActivityTime = Date.now();
+      
+      // 检测用户活动
+      function updateUserActivity() {
+        lastActivityTime = Date.now();
+        isUserActive = true;
+      }
+      
+      // 监听用户活动
+      ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
+        document.addEventListener(event, updateUserActivity, true);
+      });
+      
+      // 检查用户是否活跃（5分钟内无活动则认为不活跃）
+      function checkUserActivity() {
+        const now = Date.now();
+        const inactiveTime = now - lastActivityTime;
+        isUserActive = inactiveTime < 5 * 60 * 1000; // 5分钟
+        
+        if (!isUserActive && autoRefreshTimer) {
+          clearInterval(autoRefreshTimer);
+          autoRefreshTimer = null;
+          console.log('用户不活跃，停止自动刷新');
+        } else if (isUserActive && !autoRefreshTimer && (CURRENT_JOB || document.getElementById('submitBtn').disabled)) {
+          startAutoRefresh();
+          console.log('用户活跃且有活动任务，开始自动刷新');
+        }
+      }
+      
+      function startAutoRefresh() {
+        if (autoRefreshTimer) return; // 避免重复启动
+        
+        // 只有在有活动任务且用户活跃时才自动刷新
+        if (CURRENT_JOB || document.getElementById('submitBtn').disabled) {
+          autoRefreshTimer = setInterval(() => {
+            // 再次检查条件
+            if ((CURRENT_JOB || document.getElementById('submitBtn').disabled) && isUserActive) {
+              console.log('自动刷新视频历史');
+              loadVideoHistory();
+            } else {
+              stopAutoRefresh();
+            }
+          }, 30000); // 30秒间隔
+        }
+      }
+      
+      function stopAutoRefresh() {
+        if (autoRefreshTimer) {
+          clearInterval(autoRefreshTimer);
+          autoRefreshTimer = null;
+          console.log('停止自动刷新');
+        }
+      }
+      
+      // 每30秒检查一次用户活动状态
+      setInterval(checkUserActivity, 30000);
+      // 恢复最终视频预览（若用户未 X 关闭）
+      (function restoreFinal(){ const hidden = localStorage.getItem('final_hidden'); if (hidden === '1') return; const p = localStorage.getItem('final_preview_path'); if (p) { const wrap = document.getElementById('final_wrap'); const v = document.getElementById('final_preview'); const dl = document.getElementById('final_download'); v.src = p; wrap.style.display = 'block'; dl.href = p; } })();
+      // 使用公告（透明磨砂卡片）
+      (function renderNotice(){
+        const mdLines = [
+          '## 平台介绍',
+          'SHIRO translate 是一个公益性质的 AI 服务站点。',
+          '临时前端，将就用。',
+          '## 用户责任',
+          '用户必须承担以下责任：',
+          '- **合法使用**：仅用于合法合规场景。',
+          '- **后果自负**：由用户使用行为造成的所有后果，均由用户自行承担。',
+          '- **数据授权（重要警告）**：您必须确保所上传的数据拥有合法授权。严禁使用任何未经授权的音频数据。因使用非授权数据造成的版权纠纷、法律责任及其他一切后果，均由用户承担，与本平台无关。',
+          '- **合规用途**：本平台仅供个人学习与技术交流，严禁用于任何违法犯罪或政治、宗教等敏感活动。一经发现，将立即停止服务并保留追责权利。',
+          '## 免责条款',
+          '- 本平台仅提供技术服务，不参与用户的具体使用过程。',
+          '- 用户上传的数据、生成的内容及其使用方式，均由用户自行负责。',
+          '- 因用户违规使用造成的任何问题，本平台不承担任何责任。',
+          '继续使用本平台，即表示您已完全理解并同意本公告的全部内容。',
+          '> 公益站点，不保证稳定，随时跑路。',
+          '感谢您的配合。'
+        ];
+        const esc = (s)=>s.replace(/[&<>]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+        const mdInline = (s)=> esc(s)
+          .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\*(.+?)\*/g, '<em>$1</em>')
+          .replace(/`([^`]+?)`/g, '<code>$1</code>');
+        let html = '';
+        let inList = false;
+        for (const rawLine of mdLines) {
+          const line = rawLine.trim();
+          if (!line) continue; // 跳过空行
+          if (line.startsWith('## ')) {
+            if (inList) { html += '</ul>'; inList = false; }
+            html += `<h2>${mdInline(line.slice(3))}</h2>`;
+            continue;
+          }
+          if (line.startsWith('- ')) {
+            if (!inList) { html += '<ul>'; inList = true; }
+            html += `<li>${mdInline(line.slice(2))}</li>`;
+            continue;
+          }
+          if (line.startsWith('> ')) {
+            if (inList) { html += '</ul>'; inList = false; }
+            html += `<p><em>${mdInline(line.slice(2))}</em></p>`;
+            continue;
+          }
+          if (inList) { html += '</ul>'; inList = false; }
+          html += `<p>${mdInline(line)}</p>`;
+        }
+        if (inList) html += '</ul>';
+        const box = document.getElementById('notice_md');
+        box.innerHTML = html;
+      })();
+      function onSkipTTSChange() { const checked = document.getElementById('skip_tts').checked; const box = document.getElementById('srt_box'); box.style.display = checked ? 'block' : 'none'; }
+      document.getElementById('file').addEventListener('change', (e) => { const f = e.target.files[0]; if (f) { document.getElementById('srt_stem').value = deriveStemFromPath(f.name); const url = URL.createObjectURL(f); const v = document.getElementById('upload_preview'); const w = document.getElementById('upload_wrap'); v.src = url; w.style.display = 'block'; localStorage.setItem('upload_preview_type', 'blob'); localStorage.setItem('upload_preview_name', f.name); } });
+      (function initPreset(){ const presetBtn = document.getElementById('preset_btn'); presetBtn.onclick = () => { document.getElementById('tts_engine').value = 'gpt-sovits'; onTTSEngineChange(); document.getElementById('transcribe_engine').value = 'whisperx'; document.getElementById('source_lang').value = 'zh'; document.getElementById('target_lang').value = 'en'; document.getElementById('skip_tts').checked = false; onSkipTTSChange(); document.getElementById('diarization').checked = true; document.getElementById('separation').checked = true; PRESET_VIDEO_PATH = 'input/ZH_test.mp4'; document.getElementById('srt_stem').value = 'ZH_test'; const v = document.getElementById('upload_preview'); const w = document.getElementById('upload_wrap'); const rel = '/input/ZH_test.mp4'; v.src = rel; w.style.display = 'block'; localStorage.setItem('upload_preview_type', 'preset'); localStorage.setItem('upload_preview_path', rel); }; })();
+      function removeUpload(){ 
+        const f = document.getElementById('file'); 
+        f.value = ''; 
+        PRESET_VIDEO_PATH = null; 
+        CURRENT_FILE_VALID = false; // 重置验证状态
+        const w = document.getElementById('upload_wrap'); 
+        const v = document.getElementById('upload_preview'); 
+        const fileInfo = document.getElementById('file_info');
+        const fileStatus = document.getElementById('file_status');
+        v.src=''; 
+        w.style.display='none'; 
+        fileInfo.style.display='none'; // 隐藏文件信息
+        fileStatus.style.display='none'; // 隐藏状态指示器
+        localStorage.removeItem('upload_preview_type'); 
+        localStorage.removeItem('upload_preview_path'); 
+        localStorage.removeItem('upload_preview_name'); 
+      }
+      function removeFinal(){ const w = document.getElementById('final_wrap'); const v = document.getElementById('final_preview'); const dl = document.getElementById('final_download'); v.src=''; dl.href='#'; w.style.display='none'; localStorage.setItem('final_hidden','1'); }
+      
+      // 拖拽上传功能
+      function initDragDrop() {
+        const dropZone = document.getElementById('drop_zone');
+        const fileInput = document.getElementById('file');
+        const dropText = document.getElementById('drop_text');
+        
+        // 点击区域触发文件选择
+        dropZone.addEventListener('click', () => {
+          fileInput.click();
+        });
+        
+        // 拖拽进入
+        dropZone.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          dropZone.style.borderColor = '#2563eb';
+          dropZone.style.backgroundColor = '#eff6ff';
+          dropText.textContent = '释放文件以上传';
+        });
+        
+        // 拖拽离开
+        dropZone.addEventListener('dragleave', (e) => {
+          e.preventDefault();
+          dropZone.style.borderColor = '#d1d5db';
+          dropZone.style.backgroundColor = '#f9fafb';
+          dropText.textContent = '拖拽视频文件到此处，或点击选择文件';
+        });
+        
+        // 拖拽释放
+        dropZone.addEventListener('drop', (e) => {
+          e.preventDefault();
+          dropZone.style.borderColor = '#d1d5db';
+          dropZone.style.backgroundColor = '#f9fafb';
+          dropText.textContent = '拖拽视频文件到此处，或点击选择文件';
+          
+          const files = e.dataTransfer.files;
+          if (files.length > 0) {
+            const file = files[0];
+            if (file.type.startsWith('video/')) {
+              // 模拟文件输入
+              const dataTransfer = new DataTransfer();
+              dataTransfer.items.add(file);
+              fileInput.files = dataTransfer.files;
+              
+              // 触发文件选择事件
+              const event = new Event('change', { bubbles: true });
+              fileInput.dispatchEvent(event);
+            } else {
+              showToast('请选择视频文件');
+            }
+          }
+        });
+      }
+      
+      // 初始化拖拽功能
+      initDragDrop();
+      
+      // 页面加载时获取限制配置
+      loadVideoLimits();
+    </script>
+  </body>
+  </html>
+
+

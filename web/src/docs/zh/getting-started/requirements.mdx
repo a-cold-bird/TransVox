@@ -1,0 +1,137 @@
+# 环境要求
+
+在开始使用 TransVox 之前，请确保您的系统满足以下要求。
+
+## 硬件要求
+
+### GPU（必需）
+
+TransVox 需要 NVIDIA GPU 来运行 AI 模型。
+
+**推荐配置：**
+- NVIDIA GeForce RTX 2080Ti 或更高
+- 显存：11GB 或以上
+- CUDA 版本：12.8
+
+**最低配置：**
+- NVIDIA GeForce GTX 1660 Ti
+- 显存：6GB
+- CUDA 版本：12.1
+
+> ⚠️ **注意**：没有 NVIDIA GPU 的系统无法运行 TransVox。AMD GPU 和集成显卡目前不支持。
+
+### CPU 和内存
+
+- **CPU**：Intel i5 或 AMD Ryzen 5 及以上
+- **内存**：16GB RAM（推荐 32GB）
+- **存储**：至少 20GB 可用空间（用于模型和临时文件）
+
+## 软件要求
+
+### 操作系统
+
+TransVox 支持以下操作系统：
+
+- ✅ **Windows 10/11**（推荐）
+- ✅ **Ubuntu 20.04/22.04**
+- ✅ **macOS**（仅支持 CPU 模式，不推荐）
+
+### Python
+
+- **版本**：Python 3.10（强烈推荐）
+- Python 3.9 或 3.11 也可以工作，但可能遇到依赖兼容性问题
+
+### CUDA Toolkit
+
+TransVox 使用 PyTorch 作为深度学习框架，需要对应版本的 CUDA。
+
+- **推荐版本**：CUDA 12.8
+- **最低版本**：CUDA 12.1
+
+**安装 CUDA：**
+访问 [NVIDIA CUDA Toolkit](https://developer.nvidia.com/cuda-downloads) 下载并安装。
+
+### FFmpeg
+
+FFmpeg 用于音视频处理，必须安装并添加到系统 PATH。
+
+**Windows 安装：**
+```bash
+# 使用 Scoop
+scoop install ffmpeg
+
+# 或使用 Chocolatey
+choco install ffmpeg
+```
+
+**Linux 安装：**
+```bash
+sudo apt-get update
+sudo apt-get install -y ffmpeg
+```
+
+**验证安装：**
+```bash
+ffmpeg -version
+```
+
+## API 要求
+
+### Gemini API Key（必需）
+
+TransVox 使用 Gemini API 进行字幕翻译。
+
+**获取方式：**
+1. 访问 [Google AI Studio](https://aistudio.google.com/)
+2. 登录 Google 账号
+3. 创建新的 API Key
+4. 保存 API Key
+
+> 💡 **提示**：Gemini API 提供免费额度，足够个人使用。
+
+### Hugging Face Token（必需）
+
+用于说话人分离模型（Pyannote）。
+
+**获取方式：**
+1. 访问 [Hugging Face](https://huggingface.co/)
+2. 注册并登录账号
+3. 进入 Settings → Access Tokens
+4. 创建新的 Token（需要 Read 权限）
+5. 同意 Pyannote 模型的使用条款：
+   - [pyannote/speaker-diarization-3.1](https://huggingface.co/pyannote/speaker-diarization-3.1)
+   - [pyannote/segmentation-3.0](https://huggingface.co/pyannote/segmentation-3.0)
+
+## 网络要求
+
+### 模型下载
+
+首次运行时需要下载约 10GB 的模型文件。
+
+**国内用户：**
+建议使用 Hugging Face 镜像站加速下载：
+```bash
+export HF_ENDPOINT=https://hf-mirror.com  # Linux
+set HF_ENDPOINT=https://hf-mirror.com     # Windows
+```
+
+### API 访问
+
+- Gemini API：需要访问 Google 服务
+- Hugging Face：需要访问 huggingface.co
+
+## 检查清单
+
+在继续之前，请确认：
+
+- [ ] 拥有 NVIDIA GPU（显存 11GB+）
+- [ ] 已安装 Python 3.10
+- [ ] 已安装 CUDA 12.8
+- [ ] 已安装 FFmpeg
+- [ ] 已获取 Gemini API Key
+- [ ] 已获取 Hugging Face Token
+- [ ] 网络能够访问 Google 和 Hugging Face
+
+## 下一步
+
+环境准备好了？让我们开始[安装 TransVox](/docs/getting-started/installation)！
