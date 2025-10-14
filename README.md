@@ -24,6 +24,23 @@ TransVox 是一款强大的 AI 驱动视频翻译配音工具，能够自动将�
 - **现代化 Web 界面** - Next.js + TypeScript，暗色模式，响应式设计
 - **专业工具箱** - 字幕切片、音频分离、TTS 生成等独立工具
 
+## 界面预览
+
+### 在线文档
+内置完整的中英文档系统，支持实时搜索和主题切换：
+
+![文档系统](docs/images/screenshot-docs.png)
+
+### 工作区
+可视化流程配置和执行界面，实时显示处理进度和系统状态：
+
+![工作区界面](docs/images/screenshot-workspace.png)
+
+### 工具箱
+专业的字幕编辑器，支持视频预览、时间轴可视化和字幕样式自定义：
+
+![字幕编辑器](docs/images/screenshot-subtitle-editor.png)
+
 ## 目录
 
 - [环境要求](#环境要求)

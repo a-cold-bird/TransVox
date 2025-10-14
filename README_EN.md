@@ -24,6 +24,23 @@ TransVox is a powerful AI-driven video translation and dubbing tool that automat
 - **Modern Web Interface** - Next.js + TypeScript, dark mode, responsive design
 - **Professional Toolbox** - Subtitle slicing, audio separation, TTS generation tools
 
+## Interface Preview
+
+### Documentation System
+Built-in bilingual documentation with real-time search and theme switching:
+
+![Documentation System](docs/images/screenshot-docs.png)
+
+### Workspace
+Visual pipeline configuration and execution interface with real-time progress and system stats:
+
+![Workspace Interface](docs/images/screenshot-workspace.png)
+
+### Toolbox
+Professional subtitle editor with video preview, timeline visualization, and style customization:
+
+![Subtitle Editor](docs/images/screenshot-subtitle-editor.png)
+
 ## Table of Contents
 
 - [Requirements](#requirements)
