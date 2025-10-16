@@ -135,22 +135,60 @@ class FasterWhisperSubtitleGenerator:
         """加载模型"""
         if self.model is not None:
             return
-            
+
         print("Loading model...")
         print(f"Model path: {self.model_path}")
         print(f"Device: {self.device}")
         print(f"Compute type: {self.compute_type}")
-        
+
         try:
+            # 检查是否为本地路径
+            if os.path.exists(self.model_path):
+                # 本地模型存在，直接加载
+                print(f"Loading model from local path: {self.model_path}")
+                model_name_or_path = self.model_path
+            else:
+                # 本地模型不存在，尝试从HuggingFace下载
+                print(f"Local model not found at: {self.model_path}")
+
+                # 从路径中提取模型名称
+                model_basename = os.path.basename(self.model_path)
+
+                # 模型名称映射表
+                model_mapping = {
+                    'faster-whisper-tiny': 'Systran/faster-whisper-tiny',
+                    'faster-whisper-tiny.en': 'Systran/faster-whisper-tiny.en',
+                    'faster-whisper-base': 'Systran/faster-whisper-base',
+                    'faster-whisper-base.en': 'Systran/faster-whisper-base.en',
+                    'faster-whisper-small': 'Systran/faster-whisper-small',
+                    'faster-whisper-small.en': 'Systran/faster-whisper-small.en',
+                    'faster-whisper-medium': 'Systran/faster-whisper-medium',
+                    'faster-whisper-medium.en': 'Systran/faster-whisper-medium.en',
+                    'faster-whisper-large-v1': 'Systran/faster-whisper-large-v1',
+                    'faster-whisper-large-v2': 'Systran/faster-whisper-large-v2',
+                    'faster-whisper-large-v3': 'Systran/faster-whisper-large-v3',
+                }
+
+                # 尝试从映射表中获取HuggingFace repo ID
+                repo_id = model_mapping.get(model_basename, None)
+
+                if repo_id:
+                    print(f"Attempting to download model from HuggingFace: {repo_id}")
+                    model_name_or_path = repo_id
+                else:
+                    # 如果不在映射表中，假设它本身就是一个repo ID
+                    print(f"Attempting to load model as HuggingFace repo ID: {self.model_path}")
+                    model_name_or_path = self.model_path
+
             self.model = WhisperModel(
-                self.model_path,
+                model_name_or_path,
                 device=self.device,
                 compute_type=self.compute_type,
                 cpu_threads=4,
                 num_workers=1
             )
             print("Model loaded successfully")
-            
+
         except Exception as e:
             print(f"Model loading failed: {e}")
             raise

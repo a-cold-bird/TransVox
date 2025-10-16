@@ -73,11 +73,17 @@ asteroid-filterbanks==0.4.0
 descript-audiotools==0.7.2
 pedalboard==0.8.9
 torch-pitch_shift==1.2.5
-samplerate==0.2.1
+samplerate
 spafe==0.3.2
 omegaconf==2.3.0
 prodigyopt==1.1.2
 sageattention==1.0.6
+audiomentations==0.24.0
+torch_audiomentations
+torch_log_wmse
+torchmetrics==0.11.4
+mido
+protobuf==3.20.3
 
 # Audio processing and models
 timm==0.9.2
@@ -109,6 +115,7 @@ uvicorn==0.37.0
 gradio==5.47.2
 gradio_client==1.13.3
 python-multipart==0.0.20
+pydantic<2.11
 
 # Utilities
 requests==2.32.5
@@ -122,8 +129,13 @@ psutil==7.1.0
 fire==0.7.1
 click==8.3.0
 coloredlogs==15.0.1
+colorama
 nvitop
 
 # Development tools
 ipython==8.37.0
 
+torchaudio==2.8
+resampy
+bitsandbytes
+altair
