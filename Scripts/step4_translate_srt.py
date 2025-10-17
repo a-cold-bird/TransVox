@@ -472,12 +472,11 @@ def translate_srt(srt_path: str, target_lang: str, output_path: str = None, max_
 
         # 检查翻译是否成功
         if translated_subs == subtitles:
-            logger.warning("[翻译结果] 翻译失败，使用原字幕内容")
-            # 仍然保存原字幕，但明确标记为未翻译
-            translated_content = srt.compose(subtitles)
-            with open(output_path, 'w', encoding='utf-8') as f:
-                f.write(translated_content)
-            logger.info("[文件保存] 已保存原字幕到输出文件")
+            logger.error("[翻译失败] 翻译未成功，所有重试均失败")
+            raise RuntimeError(
+                "字幕翻译失败：API调用失败或返回结果无效。"
+                "请检查API配置（API Key、Base URL）和网络连接。"
+            )
         else:
             logger.info(f"[翻译结果] 翻译成功 (原 {len(subtitles)} 条 → 译 {len(translated_subs)} 条)")
             # 保存翻译结果
