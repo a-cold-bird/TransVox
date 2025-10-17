@@ -549,7 +549,7 @@ def main():
     parser.add_argument("-o", "--output", help="输出文件路径（不含扩展名）")
     parser.add_argument("-l", "--language", default="auto", choices=list(SUPPORTED_LANGUAGES.keys()),
                       help="语言代码，默认自动检测")
-    parser.add_argument("-m", "--model", default="./models/faster-whisper-large-v3",
+    parser.add_argument("-m", "--model", default="./models/Systran--faster-whisper-medium",
                       help="本地模型路径")
     parser.add_argument("-d", "--device", default="cuda", choices=["cuda", "cpu"],
                       help="计算设备")
@@ -559,7 +559,6 @@ def main():
                       choices=["srt", "json", "vtt", "txt"],
                       help="输出格式")
     parser.add_argument("-p", "--prompt", default="", help="初始提示词")
-    parser.add_argument("--beam-size", type=int, default=5, help="束搜索大小")
     parser.add_argument("--best-of", type=int, default=5, help="最佳候选数")
     parser.add_argument("--temperature", type=float, default=0.0, help="采样温度")
     parser.add_argument("--no-vad", action="store_true", help="禁用VAD过滤")
@@ -621,12 +620,12 @@ def main():
             "speech_pad_ms": 400,
         }
         
-        # 转录
+        # 转录（使用固定的beam_size=5）
         result = generator.transcribe_audio(
             args.input,
             language=args.language,
             initial_prompt=args.prompt,
-            beam_size=args.beam_size,
+            beam_size=5,  # 固定值，不再从命令行接受
             best_of=args.best_of,
             temperature=args.temperature,
             vad_filter=not args.no_vad,

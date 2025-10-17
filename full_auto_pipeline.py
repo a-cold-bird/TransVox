@@ -76,7 +76,7 @@ class FullAutoPipeline:
                 '-of', 'json',
                 str(video_path)
             ]
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            result = subprocess.run(cmd, capture_output=True, check=True, encoding='utf-8', errors='replace')
             data = json.loads(result.stdout)
             duration = float(data['format']['duration'])
             return duration
@@ -257,7 +257,7 @@ class FullAutoPipeline:
                 cmd.append('--no-separation')
             
             # 执行stepA (修复编码问题)
-            result = subprocess.run(cmd, check=True, capture_output=False, text=False)
+            subprocess.run(cmd, check=True, encoding='utf-8', errors='replace')
             logger.info("✅ [Step 1] 音视频处理和转录完成")
             
             return True
@@ -317,7 +317,7 @@ class FullAutoPipeline:
                 cmd.append('--whole_file')
 
             # 执行翻译 (修复编码问题)
-            result = subprocess.run(cmd, check=True, capture_output=False, text=False)
+            subprocess.run(cmd, check=True, encoding='utf-8', errors='replace')
             logger.info("✅ [Step 2] 字幕翻译完成")
 
             # 验证翻译后的字幕时长（容忍度：2分钟）
@@ -347,7 +347,7 @@ class FullAutoPipeline:
                             str(translated_srt)
                         ]
 
-                        result = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8')
+                        result = subprocess.run(cmd, capture_output=True, encoding='utf-8', errors='replace')
 
                         if result.returncode == 0:
                             logger.info("✅ [Step 2] 字幕时间戳自动修复完成")
@@ -414,7 +414,7 @@ class FullAutoPipeline:
             ]
             
             # 执行IndexTTS合成 (修复编码问题)
-            result = subprocess.run(cmd, check=True, capture_output=False, text=False)
+            subprocess.run(cmd, check=True, encoding='utf-8', errors='replace')
             logger.info("✅ [Step 3] IndexTTS语音合成完成")
             
             return True
@@ -469,7 +469,7 @@ class FullAutoPipeline:
                         '--text_lang', text_lang,
                         '--prompt_lang', prompt_lang
                     ]
-                    result = subprocess.run(cmd, check=True, capture_output=False, text=False)
+                    subprocess.run(cmd, check=True, encoding='utf-8', errors='replace')
                     logger.info("✅ [Step 3] GPT-SoVITS本地模式合成完成")
                     return True
                 except subprocess.CalledProcessError:
@@ -664,7 +664,7 @@ class FullAutoPipeline:
                     if subtitle_bilingual:
                         cmd.append('--bilingual')
                     
-                    result = subprocess.run(cmd, check=True, capture_output=False, text=False)
+                    subprocess.run(cmd, check=True, encoding='utf-8', errors='replace')
                     logger.info("✅ [Optional] 字幕嵌入完成")
                 except subprocess.CalledProcessError as e:
                     logger.warning(f"⚠️ [Optional] 字幕嵌入失败: {e}")

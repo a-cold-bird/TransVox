@@ -98,7 +98,7 @@ def main():
         if not getattr(args, 'lab', False):
             cmd_cut.append('--no_lab')
         logger.info('[B-1] 按翻译后SRT切割音频')
-        subprocess.run(cmd_cut, check=True)
+        subprocess.run(cmd_cut, check=True, encoding='utf-8', errors='replace')
 
     # 2) TTS（直接使用该SRT）
     tts_dir = output_dir / 'tts'
@@ -121,7 +121,7 @@ def main():
                 sys.executable, 'Scripts/step6_tts_indextts2.py',
                 '--translated_srt', str(translated_srt), '--clips_dir', str(clips_dir), '--out_dir', str(tts_dir)
             ]
-            subprocess.run(cmd_tts, check=True)
+            subprocess.run(cmd_tts, check=True, encoding='utf-8', errors='replace')
         else:
             logger.info(f'[B-2] TTS 文件完整 ({num_tts}/{num_clips})，启用 --resume 跳过')
     else:
@@ -131,7 +131,7 @@ def main():
             '--translated_srt', str(translated_srt), '--clips_dir', str(clips_dir), '--out_dir', str(tts_dir)
         ]
         logger.info(f'[B-2] TTS 合成 ({num_clips} 个切片)')
-        subprocess.run(cmd_tts, check=True)
+        subprocess.run(cmd_tts, check=True, encoding='utf-8', errors='replace')
 
     # 3) 合并与替换音轨（始终重新合成）
     merge_dir = output_dir / 'merge'
@@ -148,7 +148,7 @@ def main():
             '--srt', str(translated_srt), '--out_dir', str(merge_dir)
         ]
         logger.info(f'[B-3] 合并并替换音轨（TTS: {num_tts} 个文件）')
-        subprocess.run(cmd_merge, check=True)
+        subprocess.run(cmd_merge, check=True, encoding='utf-8', errors='replace')
 
     print('\n[完成] 手动SRT完整流程已完成')
     print(f"[输出] clips: {clips_dir}")

@@ -42,10 +42,9 @@ def transcribe_audio(
     audio_path: Path,
     output_path: Path,
     language: str = 'auto',
-    model: str = 'large-v3',
+    model: str = 'medium',
     diarize: bool = True,
     device: str = 'cuda',
-    beam_size: int = 5,
     temperature: float = 0.0,
     vad_threshold: float = 0.5,
     min_speakers: int = 1,
@@ -61,7 +60,6 @@ def transcribe_audio(
         model: Whisper 模型大小
         diarize: 是否启用说话人识别
         device: 设备（cuda/cpu）
-        beam_size: 束搜索大小
         temperature: 采样温度
         vad_threshold: VAD阈值
         min_speakers: 最少说话人数
@@ -75,7 +73,6 @@ def transcribe_audio(
     logger.info(f"  模型: {model}")
     logger.info(f"  语言: {language}")
     logger.info(f"  说话人识别: {'启用' if diarize else '禁用'}")
-    logger.info(f"  束搜索大小: {beam_size}")
     logger.info(f"  采样温度: {temperature}")
     logger.info(f"  VAD阈值: {vad_threshold}")
     if diarize:
@@ -91,7 +88,6 @@ def transcribe_audio(
         '--no-vad',
         '-m', model,
         '-o', str(output_path),
-        '--beam-size', str(beam_size),
         '--temperature', str(temperature),
         '--vad-threshold', str(vad_threshold)
     ]
@@ -108,7 +104,7 @@ def transcribe_audio(
     
     # 执行转录
     try:
-        subprocess.run(cmd, check=True)
+        subprocess.run(cmd, check=True, encoding='utf-8', errors='replace')
         
         # 检查输出
         srt_file = Path(f"{output_path}.srt")
@@ -150,15 +146,13 @@ def main():
     parser.add_argument('-o', '--output', required=True, help='输出 SRT 文件路径（不含 .srt 扩展名）')
     parser.add_argument('-l', '--language', default='auto',
                        help='语言代码（auto/zh/en/ja/ko，默认: auto）')
-    parser.add_argument('-m', '--model', default='large-v3',
+    parser.add_argument('-m', '--model', default='medium',
                        choices=['tiny', 'base', 'small', 'medium', 'large-v2', 'large-v3'],
-                       help='Whisper 模型大小（默认: large-v3）')
+                       help='Whisper 模型大小（默认: medium）')
     parser.add_argument('--no-diarize', action='store_true',
                        help='禁用说话人识别')
     parser.add_argument('--device', default='cuda', choices=['cuda', 'cpu'],
                        help='设备（默认: cuda）')
-    parser.add_argument('--beam-size', type=int, default=5,
-                       help='束搜索大小（默认: 5）')
     parser.add_argument('--temperature', type=float, default=0.0,
                        help='采样温度（默认: 0.0）')
     parser.add_argument('--vad-threshold', type=float, default=0.5,
@@ -194,7 +188,6 @@ def main():
             model=args.model,
             diarize=not args.no_diarize,
             device=args.device,
-            beam_size=args.beam_size,
             temperature=args.temperature,
             vad_threshold=args.vad_threshold,
             min_speakers=args.min_speakers,

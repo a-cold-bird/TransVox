@@ -51,14 +51,14 @@ def run_step1_and_step2(video_path: Path, output_dir: Path, enable_separation: b
     # 步骤1: 分离音视频
     logger.info('[A-1] 音视频分离')
     cmd1 = [py, 'Scripts/step1_separate_audio_video.py', str(video_path), '-o', str(output_dir)]
-    subprocess.run(cmd1, check=True, encoding='utf-8')
+    subprocess.run(cmd1, check=True, encoding='utf-8', errors='replace')
 
     # 步骤2: 人声与背景分离（可跳过）
     full_audio = output_dir / f"{video_path.stem}_full_audio.wav"
     if enable_separation:
         logger.info('[A-2] 人声与背景分离')
         cmd2 = [py, 'Scripts/step2_separate_vocals.py', str(full_audio)]
-        subprocess.run(cmd2, check=True, encoding='utf-8')
+        subprocess.run(cmd2, check=True, encoding='utf-8', errors='replace')
     else:
         logger.info('[A-2] 已指定跳过人声分离，复制原始音频作为speak与instru占位')
         speak_wav = output_dir / f"{video_path.stem}_speak.wav"
@@ -93,7 +93,7 @@ def run_step3_transcribe(speak_wav: Path, output_dir: Path, engine: str = 'whisp
             '-l', language,
             '--device', 'cuda',
             '--no-vad',
-            '-m', './tools/whisper-subtitles/models/Systran--faster-whisper-base',
+            '-m', './tools/whisper-subtitles/models/Systran--faster-whisper-medium',
             '-o', str(temp_output)
         ]
         
@@ -103,9 +103,9 @@ def run_step3_transcribe(speak_wav: Path, output_dir: Path, engine: str = 'whisp
             hf_token = os.getenv('HUGGINGFACE_TOKEN')
             if hf_token:
                 cmd.extend(['--hf-token', hf_token])
-            
-        subprocess.run(cmd, check=True, encoding='utf-8')
-        
+
+        subprocess.run(cmd, check=True, encoding='utf-8', errors='replace')
+
         # 检查生成的临时SRT文件
         temp_srt = Path(f"{temp_output}.srt")
         if not temp_srt.exists():
@@ -118,7 +118,7 @@ def run_step3_transcribe(speak_wav: Path, output_dir: Path, engine: str = 'whisp
             str(temp_srt),
             '-o', str(final_srt)
         ]
-        subprocess.run(convert_cmd, check=True)
+        subprocess.run(convert_cmd, check=True, encoding='utf-8', errors='replace')
         
         # 清理临时文件
         if temp_srt.exists():
@@ -229,7 +229,7 @@ def main():
             ]
             # 输出到标准 translated 路径
             cmd_translate.extend(['-o', str(translated_srt)])
-            subprocess.run(cmd_translate, check=True)
+            subprocess.run(cmd_translate, check=True, encoding='utf-8', errors='replace')
             logger.info(f'整文件翻译完成: {translated_srt}')
         except subprocess.CalledProcessError as e:
             logger.error(f'整文件翻译失败: {e}')
