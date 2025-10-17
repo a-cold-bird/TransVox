@@ -938,8 +938,8 @@ Format: Layer, Start, End, Style, Text
                               )}
                               style={{
                                 left: `${left}%`,
-                                width: `${Math.max(width, 0.5)}%`,
-                                minWidth: '4px',
+                                width: `${width}%`,
+                                minWidth: '8px',
                                 background: isActive
                                   ? 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)/0.9) 100%)'
                                   : isSelected
